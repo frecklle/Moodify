@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function Login({setIsLoggedIn}) {
+function Login({ setIsLoggedIn }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -15,7 +15,7 @@ function Login({setIsLoggedIn}) {
             const token = btoa(JSON.stringify({ email }));
             localStorage.setItem("authToken", token);
             setIsLoggedIn(true); // Update state to reflect login status
-            window.location.href = "/" // Redirect to main page
+            window.location.href = "/"; // Redirect to main page
         } else {
             setError("Invalid email or password");
         }
@@ -23,7 +23,7 @@ function Login({setIsLoggedIn}) {
     };
 
     return (
-        <div className="flex justify-center items-center w-[100vw] min-h-screen bg-gray-100">
+        <div className="flex justify-center items-center w-[100vw] min-h-screen bg-[#EDF1D6]">
             <div className="w-full max-w-sm bg-white p-8 border border-gray-300 rounded-lg shadow-lg">
                 <h2 className="text-2xl font-bold text-black mb-6 text-center">Login</h2>
                 <form onSubmit={handleSubmit}>
@@ -34,7 +34,7 @@ function Login({setIsLoggedIn}) {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="w-full px-3 py-2 border rounded-md text-gray-700 focus:outline-none focus:ring-2 bg-white focus:ring-blue-500"
+                            className="w-full px-3 py-2 border rounded-md text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#609966]"
                         />
                     </div>
                     <div className="mb-6">
@@ -44,7 +44,7 @@ function Login({setIsLoggedIn}) {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="w-full px-3 py-2 border rounded-md text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border rounded-md text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#609966]"
                         />
                     </div>
                     <button
@@ -53,6 +53,7 @@ function Login({setIsLoggedIn}) {
                     >
                         Login
                     </button>
+                    {error && <p className="text-red-500 text-center mt-4">{error}</p>}
                 </form>
             </div>
         </div>
