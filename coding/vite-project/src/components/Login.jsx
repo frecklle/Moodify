@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function Login({ setIsLoggedIn }) {
+function Login({ setIsLoggedIn, setUserId }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -26,7 +26,9 @@ function Login({ setIsLoggedIn }) {
                 alert(data.message); // This should display "Login successful"
                 const token = btoa(JSON.stringify({ email }));
                 localStorage.setItem("authToken", token);
+                localStorage.setItem("userId", data.userId);
                 setIsLoggedIn(true); // Update state to reflect login status
+                setUserId(data.userId);
                 window.location.href = "/"; // Redirect to main page
             } else {
                 alert(data.message); // This will display the error message from the server

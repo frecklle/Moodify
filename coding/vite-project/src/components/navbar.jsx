@@ -34,6 +34,10 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
         }
     };
 
+    const handleNavigation = (path) => {
+        window.location.href = path; // Navigate to the provided path
+    };
+
     return (
         <header className="w-full fixed top-0 py-1 bg-[#9DC08B]">
             <nav className="w-full flex justify-between items-center relative pr-2">
@@ -86,9 +90,9 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
                             <button
                                 key={index}
                                 className="px-2 mt-0.5 mb-0.5 py-1 text-black bg-[#9DC08B] hover:bg-[#609966]"
-                                onClick={handleClick}
+                                onClick={() => handleNavigation(nav.path)}
                             >
-                                {nav}
+                                {nav.name}
                             </button>
                         ))}
                         <button

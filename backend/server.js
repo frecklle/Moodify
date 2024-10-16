@@ -95,6 +95,52 @@ app.post('/login', (req, res) => {
     });
 });
 
+// Update email endpoint
+app.post('/update-email', (req, res) => {
+    const { userId, currentEmail, newEmail } = req.body;
+
+    // Validate input
+    if (!userId || !currentEmail || !newEmail) {
+        return res.status(400).json({ message: "All fields are required." });
+    }
+
+    // Check if the new email already exists
+    db.get('SELECT * FROM users WHERE email = ?', [newEmail], (err, row) => {
+        if (err) {
+            return res.status(500).json({ message: "Database error" });
+        }
+
+        if (row) {
+            return res.status(400).json({ message: "Email already in use" });
+        }
+
+        // Check if the current email matches the user's email
+        db.get('SELECT * FROM users WHERE id = ?', [userId], (err, user) => {
+            if (err) {
+                return res.status(500).json({ message: "Database error" });
+            }
+
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            if (user.email !== currentEmail) {
+                return res.status(401).json({ message: "Current email does not match" });
+            }
+
+            // Update email in the database
+            db.run('UPDATE users SET email = ? WHERE id = ?', [newEmail, userId], function (err) {
+                if (err) {
+                    return res.status(500).json({ message: "Failed to update email" });
+                }
+
+                res.status(200).json({ message: "Email updated successfully" });
+            });
+        });
+    });
+});
+
+
 // Start the server
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);

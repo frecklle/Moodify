@@ -4,15 +4,20 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from "./components/login.jsx";
 import Home from "./components/home.jsx";
 import Register from "./components/Register.jsx";
+import Profile from "./components/Profile.jsx";
+import Settings from "./components/Settings.jsx";
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userId, setUserId] = useState(null); // Add userId state
 
-    // Check for token when the app loads
+    // Check for token and user ID when the app loads
     useEffect(() => {
         const token = localStorage.getItem("authToken");
+        const id = localStorage.getItem("userId"); // Assuming you store user ID in localStorage
         if (token) {
             setIsLoggedIn(true);
+            setUserId(id); // Set user ID
         }
     }, []);
 
@@ -22,8 +27,10 @@ function App() {
                 <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
                 <Routes>
                     <Route path="/" element={<Home />} />
-                    <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
-                    <Route path="/register" element={<Register setIsRegistered={setIsLoggedIn}/>} />
+                    <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} setUserId={setUserId} />} />
+                    <Route path="/register" element={<Register setIsRegistered={setIsLoggedIn} />} />
+                    <Route path="/profile" element={isLoggedIn ? <Profile userId={userId} /> : <Login setIsLoggedIn={setIsLoggedIn} />} />
+                    <Route path="/settings" element={isLoggedIn ? <Settings userId={userId} /> : <Login setIsLoggedIn={setIsLoggedIn} />} />
                 </Routes>
             </Router>
         </>
