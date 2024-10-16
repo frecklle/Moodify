@@ -3,6 +3,7 @@ import Navbar from "./components/navbar.jsx";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from "./components/login.jsx";
 import Home from "./components/home.jsx";
+import Register from "./components/Register.jsx";
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -22,6 +23,7 @@ function App() {
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
+                    <Route path="/register" element={<Register setIsRegistered={setIsLoggedIn}/>} />
                 </Routes>
             </Router>
         </>

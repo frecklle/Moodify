@@ -38,7 +38,7 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
         <header className="w-full fixed top-0 py-1 bg-[#9DC08B]">
             <nav className="w-full flex justify-between items-center relative pr-2">
                 <div className="absolute left-1/2 transform -translate-x-1/2">
-                    <div className="border border-[#40513B] rounded-full py-1 px-4 flex items-center bg-[#609966]">
+                    <div className="border border-[#40513B] rounded-full py-1 px-4 flex items-center bg-green-700">
                         <h1
                             onClick={handleHomePage}
                             className="text-xl font-bold text-white cursor-pointer"
