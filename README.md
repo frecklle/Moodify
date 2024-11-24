@@ -1,19 +1,28 @@
-HOW TO LAUNCH? 
-
-git clone this repository 
-
-download the required dependacies using : 
+## HOW TO LAUNCH? 
+Clone repository:
+```
+git clone git@github.com:frecklle/Moodify.git
+```
+### Launch frontend
+Download the required dependencies in directory coding/vite-project/ using: 
+```
 npm init
 npm install vite
 npm install 
-
-you can run the frontend by going into coding folder and running : npm run dev
-
-for the backend run : 
-
+```
+Running frontend in coding/vite-project/: 
+```
+npm run dev
+```
+### Launch backend
+Download the required dependencies in directory backend/ using: 
+```
 npm init -y
-npm install express sqlite3 body-parser cors
+npm install express sqlite3 body-parser cors spotify-web-api-node
+```
+Running backend in backend/:
+```
+node server.js
+```
 
-to start the backedn : node server.js
-
-for the entire app to work you need to run the front + back end simultaneously.
+**For the entire app to work you need to run the front + back end simultaneously.**
