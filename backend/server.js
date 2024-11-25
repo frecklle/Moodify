@@ -11,6 +11,8 @@ const port = 5001;
 app.use(bodyParser.json());
 app.use(cors());
 
+
+
 // Connect to SQLite database
 const db = new sqlite3.Database('./database.db', sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
     if (err) {
@@ -184,6 +186,79 @@ app.get('/spotify/callback', (req, res) => {
         console.error('Error getting Tokens:', error);
         res.send('Error getting tokens');
     });
+});
+
+const refreshAccessToken = async () => {
+    try {
+        const data = await spotifyApi.refreshAccessToken();
+        const newAccessToken = data.body['access_token'];
+        spotifyApi.setAccessToken(newAccessToken);
+        console.log('Access token refreshed:', newAccessToken);
+    } catch (error) {
+        console.error('Error refreshing access token:', error);
+        throw new Error('Could not refresh access token');
+    }
+};
+
+// Ensure valid token function
+const ensureValidToken = async () => {
+    const currentToken = spotifyApi.getAccessToken();
+    if (!currentToken) {
+        console.log('No access token found, refreshing...');
+        await refreshAccessToken();
+    }
+};
+
+app.get('/spotify/playlist', async (req, res) => {
+    const { mood } = req.query;
+    const code = req.query.code;
+
+
+    // Define mood to Spotify genre mapping
+    const moodToGenre = {
+        'happy': 'pop',
+        'neutral': 'indie',
+        'sad': 'acoustic',
+        'angry': 'metal',
+        'cool': 'jazz',
+        'sleepy': 'ambient'
+    };
+
+    const genre = moodToGenre[mood];
+
+    if (!genre) {
+        return res.status(400).send('Invalid mood');
+    }
+
+    console.log('Current Access Token:', spotifyApi.getAccessToken());
+    await ensureValidToken();
+    console.log('Current Access Token:', spotifyApi.getAccessToken());
+
+    // try {
+    //     // Check if the access token is set
+    //     if (!spotifyApi.getAccessToken()) {
+    //         return res.status(401).send('Access token is missing or expired');
+    //     }
+
+    //     // Search for tracks based on the genre
+    //     const data = await spotifyApi.searchTracks(`genre:${genre}`, { limit: 20 });
+    //     const tracks = data.body.tracks.items;
+
+    //     // Create a new playlist
+    //     const userData = await spotifyApi.getMe();
+    //     const userId = userData.body.id;
+    //     const playlistData = await spotifyApi.createPlaylist(userId, `Mood: ${mood}`, { public: false });
+    //     const playlistId = playlistData.body.id;
+
+    //     // Add tracks to the playlist
+    //     const trackUris = tracks.map(track => track.uri);
+    //     await spotifyApi.addTracksToPlaylist(playlistId, trackUris);
+
+    //     res.send({ playlistId });
+    // } catch (error) {
+    //     console.error('Error generating playlist:', error);
+    //     res.status(500).send('Error generating playlist');
+    // }
 });
 
 // Start the server

@@ -22,6 +22,15 @@ const Home = () => {
         console.log(`Mood set to: ${mood.label}`);
     };
 
+    const handleGeneratePlaylist = (mood) => {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+            alert("Please log in to generate a playlist.");
+            return;
+        }
+        window.location.href = `http://localhost:5001/spotify/playlist?mood=${mood}`;
+    };
+
     return (
         <div className="flex flex-col text-black justify-center items-center w-[100vw] min-h-screen bg-[#EDF1D6]">
             <h1 className="text-3xl font-bold mb-4 text-[#40513B]">Welcome to Moodify</h1>
@@ -37,12 +46,17 @@ const Home = () => {
                         {mood.emoji}
                     </button>
                 ))}
+                                        
             </div>
             {selectedMood && (
                 <div className="mt-4">
                     <h3 className="text-xl text-[#609966]">Your selected mood: {selectedMood.emoji} ({selectedMood.label})</h3>
                 </div>
             )}
+            <button
+                onClick={() => handleGeneratePlaylist('happy')}
+                className="w-16 h-16 bg-yellow-500 text-white py-2 rounded-md hover:bg-yellow-600 transition duration-300 ease-in-out hover:scale-105"
+            ></button>
         </div>
     );
 };
