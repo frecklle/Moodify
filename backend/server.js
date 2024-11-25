@@ -2,6 +2,8 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const SpotifyWebApi = require('spotify-web-api-node');
+const spotifyApi = require('./spotifyApi'); // Import the Spotify API utility
 
 const app = express();
 const port = 5001;
@@ -140,6 +142,49 @@ app.post('/update-email', (req, res) => {
     });
 });
 
+// Spotify API routes
+app.get('/spotify/auth', (req, res) => {
+    // Define the scopes for authorization; these are the permissions we ask from the user.
+    const scopes = ['user-read-private', 'user-read-email', 'user-read-playback-state', 'user-modify-playback-state'];
+    // Redirect the client to Spotify's authorization page with the defined scopes.
+    res.redirect(spotifyApi.createAuthorizeURL(scopes));
+});
+
+app.get('/spotify/callback', (req, res) => {
+    const error = req.query.error;
+    const code = req.query.code;
+
+    if (error === 'access_denied') {
+        console.error('Access denied:', error);
+        res.redirect('http://localhost:5173/settings?error=access_denied');
+        return; 
+    }
+
+    // Exchange the code for an access token and a refresh token.
+    spotifyApi.authorizationCodeGrant(code).then(data => {
+        const accessToken = data.body['access_token'];
+        const refreshToken = data.body['refresh_token'];
+        const expiresIn = data.body['expires_in'];
+
+        // Set the access token and refresh token on the Spotify API object.
+        spotifyApi.setAccessToken(accessToken);
+        spotifyApi.setRefreshToken(refreshToken);
+
+        // Refresh the access token periodically before it expires.
+        setInterval(async () => {
+            const data = await spotifyApi.refreshAccessToken();
+            const accessTokenRefreshed = data.body['access_token'];
+            spotifyApi.setAccessToken(accessTokenRefreshed);
+        }, expiresIn / 2 * 1000); // Refresh halfway before expiration.
+
+        // Send a success message to the user.
+        res.redirect('http://localhost:5173/settings');
+
+    }).catch(error => {
+        console.error('Error getting Tokens:', error);
+        res.send('Error getting tokens');
+    });
+});
 
 // Start the server
 app.listen(port, () => {
