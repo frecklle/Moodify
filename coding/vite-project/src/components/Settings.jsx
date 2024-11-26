@@ -25,6 +25,13 @@ const Settings = () => {
         }
     };
 
+    const handleSpotifyAuth = () => {
+        const confirmation = window.confirm("This will redirect you to the Spotify authentication page. Are you sure you want to continue?");
+        if (confirmation) {
+            window.location.href = "http://localhost:5001/spotify/auth";
+        }
+    };
+
     return (
         <div className="flex justify-center items-center w-[100vw] min-h-screen bg-[#EDF1D6]">
             <div className="w-full max-w-sm bg-white p-8 border border-gray-300 rounded-lg shadow-lg">
@@ -41,6 +48,12 @@ const Settings = () => {
                         className="w-full bg-green-700 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300 ease-in-out hover:scale-105"
                     >
                         Change Password
+                    </button>
+                    <button
+                        onClick={handleSpotifyAuth}
+                        className="w-full bg-green-700 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300 ease-in-out hover:scale-105"
+                    >
+                        Connect to Spotify
                     </button>
                     <button
                         onClick={handleDeleteAccount}
