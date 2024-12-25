@@ -1,21 +1,27 @@
 import React, { useState } from 'react';
-import EmailChangeModal from './EmailChangeModal'; // Make sure to import the modal component
+import EmailChangeModal from './emailChangeModal'; // Make sure to import the modal component
+import PasswordChangeModal from './PasswordChangeModal'; // Import the PasswordChangeModal component
 
 const Settings = () => {
     const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false); // State to control password change modal
 
     const userId = localStorage.getItem("userId");
 
     const handleChangeEmail = () => {
-            if (!userId) {
-                alert("You must be logged in to change your email.");
-                return;
-            }
-            setIsEmailModalOpen(true); // Open the modal when clicked
-        };
+        if (!userId) {
+            alert("You must be logged in to change your email.");
+            return;
+        }
+        setIsEmailModalOpen(true); // Open the email change modal
+    };
 
     const handleChangePassword = () => {
-        alert('Change Password option clicked!'); // Placeholder for opening password change popup
+        if (!userId) {
+            alert("You must be logged in to change your password.");
+            return;
+        }
+        setIsPasswordModalOpen(true); // Open the password change modal
     };
 
     const handleDeleteAccount = () => {
@@ -63,7 +69,10 @@ const Settings = () => {
                     </button>
                 </div>
             </div>
+            {/* Email Change Modal */}
             <EmailChangeModal isOpen={isEmailModalOpen} onClose={() => setIsEmailModalOpen(false)} userId={userId} />
+            {/* Password Change Modal */}
+            <PasswordChangeModal isOpen={isPasswordModalOpen} onClose={() => setIsPasswordModalOpen(false)} userId={userId} />
         </div>
     );
 };
