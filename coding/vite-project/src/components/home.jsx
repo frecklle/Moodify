@@ -52,11 +52,16 @@ const Home = () => {
                 <div className="mt-4">
                     <h3 className="text-xl text-[#609966]">Your selected mood: {selectedMood.emoji} ({selectedMood.label})</h3>
                 </div>
+                
             )}
-            <button
-                onClick={() => handleGeneratePlaylist('happy')}
-                className="w-16 h-16 bg-yellow-500 text-white py-2 rounded-md hover:bg-yellow-600 transition duration-300 ease-in-out hover:scale-105"
-            ></button>
+            {selectedMood && (
+                <button
+                    onClick={() => handleGeneratePlaylist(selectedMood.label.toLowerCase())}
+                    className="mt-4 px-4 py-2 bg-[#609966] text-white rounded-md hover:bg-[#40513B] transition duration-300 ease-in-out"
+                >
+                    Generate Playlist
+                </button>
+            )}
         </div>
     );
 };

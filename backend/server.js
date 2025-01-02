@@ -147,7 +147,7 @@ app.post('/update-email', (req, res) => {
 // Spotify API routes
 app.get('/spotify/auth', (req, res) => {
     // Define the scopes for authorization; these are the permissions we ask from the user.
-    const scopes = ['user-read-private', 'user-read-email', 'user-read-playback-state', 'user-modify-playback-state'];
+    const scopes = ['user-read-private', 'user-read-email', 'user-read-playback-state', 'user-modify-playback-state', 'playlist-modify-public', 'playlist-modify-private'];
     // Redirect the client to Spotify's authorization page with the defined scopes.
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
 });
@@ -213,7 +213,7 @@ app.get('/spotify/playlist', async (req, res) => {
     const { mood } = req.query;
     const code = req.query.code;
 
-
+    //TODO: add more moods to mapping 
     // Define mood to Spotify genre mapping
     const moodToGenre = {
         'happy': 'pop',
@@ -234,31 +234,22 @@ app.get('/spotify/playlist', async (req, res) => {
     await ensureValidToken();
     console.log('Current Access Token:', spotifyApi.getAccessToken());
 
-    // try {
-    //     // Check if the access token is set
-    //     if (!spotifyApi.getAccessToken()) {
-    //         return res.status(401).send('Access token is missing or expired');
-    //     }
+    try {
+        const playlistData = await spotifyApi.createPlaylist(`Moodify - ${mood}`, { 'description': `A playlist for when you're feeling ${mood}`, 'public': true });
+        const playlistId = playlistData.body.id;
 
-    //     // Search for tracks based on the genre
-    //     const data = await spotifyApi.searchTracks(`genre:${genre}`, { limit: 20 });
-    //     const tracks = data.body.tracks.items;
+        const tracksData = await spotifyApi.searchTracks(`genre:${genre}`, { limit: 20 });
+        const trackUris = tracksData.body.tracks.items.map(track => track.uri);
 
-    //     // Create a new playlist
-    //     const userData = await spotifyApi.getMe();
-    //     const userId = userData.body.id;
-    //     const playlistData = await spotifyApi.createPlaylist(userId, `Mood: ${mood}`, { public: false });
-    //     const playlistId = playlistData.body.id;
+        await spotifyApi.addTracksToPlaylist(playlistId, trackUris);
 
-    //     // Add tracks to the playlist
-    //     const trackUris = tracks.map(track => track.uri);
-    //     await spotifyApi.addTracksToPlaylist(playlistId, trackUris);
+        const playlist = await spotifyApi.getPlaylist(playlistId);
+        res.status(200).json(playlist.body);
+    } catch (error) {
+        console.error('Error creating playlist:', error);
+        res.status(500).send('Error creating playlist');
+    }
 
-    //     res.send({ playlistId });
-    // } catch (error) {
-    //     console.error('Error generating playlist:', error);
-    //     res.status(500).send('Error generating playlist');
-    // }
 });
 
 // Start the server
