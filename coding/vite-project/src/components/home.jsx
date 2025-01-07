@@ -28,27 +28,10 @@ const Home = () => {
             alert("Please log in to generate a playlist.");
             return;
         }
-
-        fetch(`http://localhost:5001/spotify/playlist?mood=${mood}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        })
-        .then(response => resultInJson = response.json())
-        .then(data => {
-            console.log('Playlist generated:', data);
-            // Handle the playlist data here
-        })
-        .catch(error => {
-            console.error('Error generating playlist:', error);
-        });
-        window.location.href = `http://localhost:5173/playlistDisplay`; 
+        window.location.href = `http://localhost:5173/playlist/display?mood=${mood}`; 
 
     };
 
-    const handlePlaylistDisplay = () => {   
-    }
 
     return (
         <div className="flex flex-col text-black justify-center items-center w-[100vw] min-h-screen bg-[#EDF1D6]">

@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const SpotifyWebApi = require('spotify-web-api-node');
 const spotifyApi = require('./spotifyApi'); // Import the Spotify API utility
+const fetch = require("node-fetch"); // Use axios if preferred
 
 const app = express();
 const port = 5001;
@@ -209,8 +210,11 @@ const ensureValidToken = async () => {
     }
 };
 
-app.get('/spotify/playlist', async (req, res) => {
+
+app.get("/playlist/display", async (req, res) => {
     const { mood } = req.query;
+    console.log("/spotify/playlist:", mood);
+
     const code = req.query.code;
 
     //TODO: add more moods to mapping 
@@ -232,25 +236,23 @@ app.get('/spotify/playlist', async (req, res) => {
 
     console.log('Current Access Token:', spotifyApi.getAccessToken());
     await ensureValidToken();
-    console.log('Current Access Token:', spotifyApi.getAccessToken());
-
+    
     try {
-        const playlistData = await spotifyApi.createPlaylist(`Moodify - ${mood}`, { 'description': `A playlist for when you're feeling ${mood}`, 'public': true });
-        const playlistId = playlistData.body.id;
+        // const playlistData = await spotifyApi.createPlaylist(`Moodify - ${mood}`, { 'description': `A playlist for when you're feeling ${mood}`, 'public': true });
+        // const playlistId = playlistData.body.id;
 
         const tracksData = await spotifyApi.searchTracks(`genre:${genre}`, { limit: 20 });
         const trackUris = tracksData.body.tracks.items.map(track => track.uri);
 
-        await spotifyApi.addTracksToPlaylist(playlistId, trackUris);
+        // await spotifyApi.addTracksToPlaylist(playlistId, trackUris);
 
-        const playlist = await spotifyApi.getPlaylist(playlistId);
-        res.status(200).json(playlist.body);
+        // const playlist = await spotifyApi.getPlaylist(playlistId);
+        res.status(200).json(trackUris);
     } catch (error) {
         console.error('Error creating playlist:', error);
         res.status(500).send('Error creating playlist');
     }
-
-});
+  });
 
 // Start the server
 app.listen(port, () => {
