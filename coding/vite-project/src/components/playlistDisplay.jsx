@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
 
-
-
-
 const PlaylistDisplay = () => {
     const queryParams = new URLSearchParams(window.location.search);
     const mood = queryParams.get('mood');
@@ -40,8 +37,10 @@ const PlaylistDisplay = () => {
                 <p>Error: {error}</p>
             ) : playlists.length > 0 ? (
                 <ul>
-                    {playlists.map((playlist, index) => (
-                        <li key={index}>{playlist.split(':')[2]}</li>
+                    {playlists.map((playlist) => (
+                        <li key={playlist.id}>
+                            {playlist.name} by {playlist.artist} from the album {playlist.album}
+                        </li>
                     ))}
                 </ul>
             ) : (

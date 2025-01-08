@@ -153,6 +153,7 @@ app.get('/spotify/auth', (req, res) => {
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
 });
 
+//TODO: change redirect from settings to some other screen
 app.get('/spotify/callback', (req, res) => {
     const error = req.query.error;
     const code = req.query.code;
@@ -215,8 +216,6 @@ app.get("/playlist/display", async (req, res) => {
     const { mood } = req.query;
     console.log("/spotify/playlist:", mood);
 
-    const code = req.query.code;
-
     //TODO: add more moods to mapping 
     // Define mood to Spotify genre mapping
     const moodToGenre = {
@@ -247,7 +246,14 @@ app.get("/playlist/display", async (req, res) => {
         // await spotifyApi.addTracksToPlaylist(playlistId, trackUris);
 
         // const playlist = await spotifyApi.getPlaylist(playlistId);
-        res.status(200).json(trackUris);
+        const tracks = tracksData.body.tracks.items.map(track => ({
+            id: track.id,
+            name: track.name,
+            artist: track.artists[0].name,
+            album: track.album.name
+        }));
+
+        res.status(200).json(tracks);
     } catch (error) {
         console.error('Error creating playlist:', error);
         res.status(500).send('Error creating playlist');
