@@ -7,7 +7,7 @@ function Login({ setIsLoggedIn, setUserId }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+    
         try {
             const response = await fetch('http://localhost:5001/login', {
                 method: 'POST',
@@ -19,22 +19,30 @@ function Login({ setIsLoggedIn, setUserId }) {
                     password,  // Use the plain password, assuming it's encrypted for comparison on the server
                 }),
             });
-
+    
             const data = await response.json(); // Parse the response as JSON
-
+    
             if (response.ok) {
-                alert(data.message); // This should display "Login successful"
+                alert(data.message); // Show "Login successful"
+                
+                if (data.userId) {
+                    localStorage.setItem("userId", data.userId);
+                    setUserId(data.userId);
+                } else {
+                    console.error('User ID not found in response');
+                }
+                
                 const token = btoa(JSON.stringify({ email }));
                 localStorage.setItem("authToken", token);
-                localStorage.setItem("userId", data.userId);
+    
                 setIsLoggedIn(true); // Update state to reflect login status
-                setUserId(data.userId);
                 window.location.href = "/"; // Redirect to main page
             } else {
-                alert(data.message); // This will display the error message from the server
+                setError(data.message); // Show error from server
             }
         } catch (error) {
             console.error('Error during login:', error);
+            setError("An error occurred during login. Please try again later.");
         }
     };
 
