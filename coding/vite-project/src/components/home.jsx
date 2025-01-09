@@ -19,8 +19,19 @@ const Home = () => {
             return;
         }
         setSelectedMood(mood);
-        console.log(`Mood set to: ${mood.label}`);
+        console.log(`Mood set to: ${mood.label}`); 
     };
+
+    const handleGeneratePlaylist = (mood) => {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+            alert("Please log in to generate a playlist.");
+            return;
+        }
+        window.location.href = `http://localhost:5173/playlist/display?mood=${mood}`; 
+
+    };
+
 
     return (
         <div className="flex flex-col text-black justify-center items-center w-[100vw] min-h-screen bg-[#EDF1D6]">
@@ -42,6 +53,14 @@ const Home = () => {
                 <div className="mt-4">
                     <h3 className="text-xl text-[#609966]">Your selected mood: {selectedMood.emoji} ({selectedMood.label})</h3>
                 </div>
+            )}
+            {selectedMood && (
+                <button
+                    onClick={() => handleGeneratePlaylist(selectedMood.label.toLowerCase())}
+                    className="mt-4 px-4 py-2 bg-[#609966] text-white rounded-md hover:bg-[#40513B] transition duration-300 ease-in-out"
+                >
+                    Generate Playlist
+                </button>
             )}
         </div>
     );

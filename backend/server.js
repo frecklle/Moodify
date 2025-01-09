@@ -3,14 +3,16 @@ const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const SpotifyWebApi = require('spotify-web-api-node');
-const spotifyApi = require('./spotifyApi'); 
-const bcrypt = require('bcrypt'); 
+const spotifyApi = require('./spotifyApi'); // Import the Spotify API utility
+const fetch = require("node-fetch"); // Use axios if preferred
 
 const app = express();
 const port = 5001;
 
 app.use(bodyParser.json());
 app.use(cors());
+
+
 
 // Connect to SQLite database
 const db = new sqlite3.Database('./database.db', sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
@@ -211,11 +213,12 @@ app.post('/change-password', (req, res) => {
 // Spotify API routes
 app.get('/spotify/auth', (req, res) => {
     // Define the scopes for authorization; these are the permissions we ask from the user.
-    const scopes = ['user-read-private', 'user-read-email', 'user-read-playback-state', 'user-modify-playback-state'];
+    const scopes = ['user-read-private', 'user-read-email', 'user-read-playback-state', 'user-modify-playback-state', 'playlist-modify-public', 'playlist-modify-private'];
     // Redirect the client to Spotify's authorization page with the defined scopes.
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
 });
 
+//TODO: change redirect from settings to some other screen
 app.get('/spotify/callback', (req, res) => {
     const error = req.query.error;
     const code = req.query.code;
@@ -251,6 +254,76 @@ app.get('/spotify/callback', (req, res) => {
         res.send('Error getting tokens');
     });
 });
+
+const refreshAccessToken = async () => {
+    try {
+        const data = await spotifyApi.refreshAccessToken();
+        const newAccessToken = data.body['access_token'];
+        spotifyApi.setAccessToken(newAccessToken);
+        console.log('Access token refreshed:', newAccessToken);
+    } catch (error) {
+        console.error('Error refreshing access token:', error);
+        throw new Error('Could not refresh access token');
+    }
+};
+
+// Ensure valid token function
+const ensureValidToken = async () => {
+    const currentToken = spotifyApi.getAccessToken();
+    if (!currentToken) {
+        console.log('No access token found, refreshing...');
+        await refreshAccessToken();
+    }
+};
+
+
+app.get("/playlist/display", async (req, res) => {
+    const { mood } = req.query;
+    console.log("/spotify/playlist:", mood);
+
+    //TODO: add more moods to mapping 
+    // Define mood to Spotify genre mapping
+    const moodToGenre = {
+        'happy': 'pop',
+        'neutral': 'indie',
+        'sad': 'acoustic',
+        'angry': 'metal',
+        'cool': 'jazz',
+        'sleepy': 'ambient'
+    };
+
+    const genre = moodToGenre[mood];
+
+    if (!genre) {
+        return res.status(400).send('Invalid mood');
+    }
+
+    console.log('Current Access Token:', spotifyApi.getAccessToken());
+    await ensureValidToken();
+    
+    try {
+        // const playlistData = await spotifyApi.createPlaylist(`Moodify - ${mood}`, { 'description': `A playlist for when you're feeling ${mood}`, 'public': true });
+        // const playlistId = playlistData.body.id;
+
+        const tracksData = await spotifyApi.searchTracks(`genre:${genre}`, { limit: 20 });
+        const trackUris = tracksData.body.tracks.items.map(track => track.uri);
+
+        // await spotifyApi.addTracksToPlaylist(playlistId, trackUris);
+
+        // const playlist = await spotifyApi.getPlaylist(playlistId);
+        const tracks = tracksData.body.tracks.items.map(track => ({
+            id: track.id,
+            name: track.name,
+            artist: track.artists[0].name,
+            album: track.album.name
+        }));
+
+        res.status(200).json(tracks);
+    } catch (error) {
+        console.error('Error creating playlist:', error);
+        res.status(500).send('Error creating playlist');
+    }
+  });
 
 // Start the server
 app.listen(port, () => {
