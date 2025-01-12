@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const spotifyApi = require('./spotifyApi');
 
+
 const app = express();
 const port = 5001;
 
@@ -277,7 +278,6 @@ const ensureValidToken = async () => {
 };
 
 
-
 app.post("/playlist/save", async (req, res) => {
     const { playlists, mood } = req.body;
 
@@ -319,6 +319,7 @@ app.get("/playlist/display", async (req, res) => {
     };
 
     const genre = getRandomGenre(mood);
+
 
     if (!genre) {
         return res.status(400).send('Invalid mood');

@@ -13,6 +13,7 @@ const PlaylistDisplay = () => {
         const fetchPlaylists = async () => {
             try {
                 const response = await fetch(`http://localhost:5001/playlist/display?mood=${mood}`);
+
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -31,7 +32,7 @@ const PlaylistDisplay = () => {
 
 
     const savePlaylist = async () => {
-        console.log(JSON.stringify({ playlists, mood }));
+
         try {
             const response = await fetch('http://localhost:5001/playlist/save', {
                 method: 'POST',
@@ -40,7 +41,7 @@ const PlaylistDisplay = () => {
                 },
                 body: JSON.stringify({ playlists, mood }),
             });
-    
+          
             if (!response.ok) {
                 const errorDetails = await response.text();
                 throw new Error(`HTTP error! status: ${response.status}, details: ${errorDetails}`);
@@ -54,6 +55,7 @@ const PlaylistDisplay = () => {
         } catch (err) {
             console.error('Error saving playlist:', err);
             setError(err.message || 'An unknown error occurred.');
+
         }
     };
 

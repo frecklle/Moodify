@@ -9,6 +9,7 @@ import Settings from "./components/Settings.jsx";
 import PlaylistDisplay from "./components/PlaylistDisplay.jsx";
 import Dashboard from './components/Dashboard.jsx';
 
+
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [userId, setUserId] = useState(null); // Add userId state
