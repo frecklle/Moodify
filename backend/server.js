@@ -40,8 +40,6 @@ db.run (`
     )
 `);
 
-// Registration route
-const bcrypt = require('bcrypt');
 
 // Registration route
 app.post('/register', async (req, res) => {
@@ -101,14 +99,20 @@ app.post('/login', (req, res) => {
         }
 
         // Successful login
-        console.log('Login successful for email:', email); // Log successful login
-        return res.status(200).json({ message: 'Login successful' });
+        return res.status(200).json({ 
+            message: 'Login successful', 
+            userId: row.id 
+        });
     });
 });
 
 // Update email endpoint
 app.post('/update-email', (req, res) => {
+    
     const { userId, currentEmail, newEmail } = req.body;
+
+    console.log("Received request body:", req.body);
+    console.log("Received userId:", userId);
 
     // Validate input
     if (!userId || !currentEmail || !newEmail) {
@@ -118,38 +122,99 @@ app.post('/update-email', (req, res) => {
     // Check if the new email already exists
     db.get('SELECT * FROM users WHERE email = ?', [newEmail], (err, row) => {
         if (err) {
+            console.error("Error querying database for new email:", err);
             return res.status(500).json({ message: "Database error" });
         }
 
         if (row) {
+            console.log("New email already in use:", newEmail);
             return res.status(400).json({ message: "Email already in use" });
         }
 
         // Check if the current email matches the user's email
         db.get('SELECT * FROM users WHERE id = ?', [userId], (err, user) => {
+            console.log("Database query result for userId:", user);
             if (err) {
+                console.error("Error querying database for userId:", err);
                 return res.status(500).json({ message: "Database error" });
             }
 
             if (!user) {
+                console.log("User not found for userId:", userId);
                 return res.status(404).json({ message: "User not found" });
             }
 
             if (user.email !== currentEmail) {
+                console.log("Current email does not match:", currentEmail);
                 return res.status(401).json({ message: "Current email does not match" });
             }
 
             // Update email in the database
             db.run('UPDATE users SET email = ? WHERE id = ?', [newEmail, userId], function (err) {
                 if (err) {
+                    console.error("Error updating email:", err);
                     return res.status(500).json({ message: "Failed to update email" });
                 }
+                console.log("Email updated successfully for userId:", userId);
 
                 res.status(200).json({ message: "Email updated successfully" });
             });
         });
     });
 });
+
+app.post('/change-password', (req, res) => {
+    const { userId, currentPassword, newPassword } = req.body;
+
+    // Validate input
+    if (!userId || !currentPassword || !newPassword) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Check if the user exists
+    db.get('SELECT * FROM users WHERE id = ?', [userId], (err, user) => {
+        if (err) {
+            console.error('Error querying database:', err);
+            return res.status(500).json({ message: 'Database error' });
+        }
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Compare current password with the stored one
+        bcrypt.compare(currentPassword, user.password, (err, result) => {
+            if (err) {
+                console.error('Error comparing passwords:', err);
+                return res.status(500).json({ message: 'Error checking password' });
+            }
+
+            if (!result) {
+                return res.status(400).json({ message: 'Current password is incorrect' });
+            }
+
+            // Hash the new password
+            bcrypt.hash(newPassword, 10, (err, hashedPassword) => {
+                if (err) {
+                    console.error('Error hashing password:', err);
+                    return res.status(500).json({ message: 'Error hashing password' });
+                }
+
+                // Update the password in the database
+                db.run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId], (err) => {
+                    if (err) {
+                        console.error('Error updating password:', err);
+                        return res.status(500).json({ message: 'Error updating password' });
+                    }
+
+                    res.status(200).json({ message: 'Password successfully updated' });
+                });
+            });
+        });
+    });
+});
+
+
 
 // Spotify API routes
 app.get('/spotify/auth', (req, res) => {
