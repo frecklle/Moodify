@@ -21,6 +21,7 @@ function App() {
         if (token) {
             setIsLoggedIn(true);
             setUserId(id); // Set user ID
+            console.log('User ID:', id);
         }
     }, []);
 
@@ -30,7 +31,7 @@ function App() {
                 <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
                 <Routes>
                     <Route path="/" element={<Home />} />
-                    <Route path="/playlist/display" element={<PlaylistDisplay setIsLoggedIn={setIsLoggedIn} setUserId={setUserId} />} />
+                    <Route path="/playlist/display" element={<PlaylistDisplay setIsLoggedIn={setIsLoggedIn} userId={userId} setUserId={setUserId} />} />
                     <Route path="/dashboard" element={<Dashboard setIsLoggedIn={setIsLoggedIn} setUserId={setUserId} />} />
                     <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} setUserId={setUserId} />} />
                     <Route path="/register" element={<Register setIsRegistered={setIsLoggedIn} />} />

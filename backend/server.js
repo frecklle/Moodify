@@ -3,7 +3,7 @@ const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const spotifyApi = require('./spotifyApi');
-
+const bcrypt = require('bcrypt');
 
 const app = express();
 const port = 5001;
@@ -279,9 +279,9 @@ const ensureValidToken = async () => {
 
 
 app.post("/playlist/save", async (req, res) => {
-    const { playlists, mood } = req.body;
+    const { playlists, mood, userId } = req.body;
 
-    if (!playlists || !Array.isArray(playlists)) {
+    if (!playlists || !Array.isArray(playlists) || !userId) {
         return res.status(400).send('Invalid request data');
     }
 
@@ -290,11 +290,23 @@ app.post("/playlist/save", async (req, res) => {
     try {
         const playlistData = await spotifyApi.createPlaylist(`Moodify - ${mood}`, { 'description': `A playlist for when you're feeling ${mood}`, 'public': true });
         const playlistId = playlistData.body.id;
+        const playlistName = playlistData.body.name;
 
         const trackUris = playlists.map(track => `spotify:track:${track.id}`);
         await spotifyApi.addTracksToPlaylist(playlistId, trackUris);
 
-        res.status(201).json({ message: 'Playlist created successfully', playlistId });
+        // Save playlist to the database
+        db.run('INSERT INTO playlists (id_playlist, user_id, name) VALUES (?, ?, ?)', [playlistId, userId, playlistName], function (err) {
+            
+            if (err) {
+                console.error('Error saving playlist to database:', err);
+                return res.status(500).send('Error saving playlist to database');
+            }
+
+            res.status(201).json({ message: 'Playlist created and saved successfully', playlistId });
+            console.error('Playlist created and saved successfully', playlistId );
+
+        });
     } catch (error) {
         console.error('Error saving playlist:', error);
         res.status(500).send('Error saving playlist');
@@ -343,6 +355,20 @@ app.get("/playlist/display", async (req, res) => {
         res.status(500).send('Error creating playlist');
     }
   });
+
+
+app.get('/dashboard', (req, res) => {
+    db.all('SELECT * FROM playlists', (err, rows) => {
+        if (err) {
+            console.error('Error querying database:', err);
+            return res.status(500).json({ message: 'Error querying database' });
+        }
+
+        res.status(200).json(rows);
+        // console.log('Query result:', rows);
+    });
+});
+
 
 // Start the server
 app.listen(port, () => {
