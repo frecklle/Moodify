@@ -2,9 +2,7 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const SpotifyWebApi = require('spotify-web-api-node');
-const spotifyApi = require('./spotifyApi'); // Import the Spotify API utility
-const fetch = require("node-fetch"); // Use axios if preferred
+const spotifyApi = require('./spotifyApi');
 
 const app = express();
 const port = 5001;
@@ -32,6 +30,14 @@ db.run(`
     email TEXT NOT NULL,
     password TEXT NOT NULL
   )
+`);
+db.run (`
+    CREATE TABLE IF NOT EXISTS playlists (
+        id_playlist INT PRIMARY KEY,
+        user_id INT NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    )
 `);
 
 // Registration route
@@ -147,9 +153,7 @@ app.post('/update-email', (req, res) => {
 
 // Spotify API routes
 app.get('/spotify/auth', (req, res) => {
-    // Define the scopes for authorization; these are the permissions we ask from the user.
     const scopes = ['user-read-private', 'user-read-email', 'user-read-playback-state', 'user-modify-playback-state', 'playlist-modify-public', 'playlist-modify-private'];
-    // Redirect the client to Spotify's authorization page with the defined scopes.
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
 });
 
@@ -164,24 +168,20 @@ app.get('/spotify/callback', (req, res) => {
         return; 
     }
 
-    // Exchange the code for an access token and a refresh token.
     spotifyApi.authorizationCodeGrant(code).then(data => {
         const accessToken = data.body['access_token'];
         const refreshToken = data.body['refresh_token'];
         const expiresIn = data.body['expires_in'];
 
-        // Set the access token and refresh token on the Spotify API object.
         spotifyApi.setAccessToken(accessToken);
         spotifyApi.setRefreshToken(refreshToken);
 
-        // Refresh the access token periodically before it expires.
         setInterval(async () => {
             const data = await spotifyApi.refreshAccessToken();
             const accessTokenRefreshed = data.body['access_token'];
             spotifyApi.setAccessToken(accessTokenRefreshed);
         }, expiresIn / 2 * 1000); // Refresh halfway before expiration.
 
-        // Send a success message to the user.
         res.redirect('http://localhost:5173/settings');
 
     }).catch(error => {
@@ -212,22 +212,48 @@ const ensureValidToken = async () => {
 };
 
 
+
+app.post("/playlist/save", async (req, res) => {
+    const { playlists, mood } = req.body;
+
+    if (!playlists || !Array.isArray(playlists)) {
+        return res.status(400).send('Invalid request data');
+    }
+
+    await ensureValidToken();
+
+    try {
+        const playlistData = await spotifyApi.createPlaylist(`Moodify - ${mood}`, { 'description': `A playlist for when you're feeling ${mood}`, 'public': true });
+        const playlistId = playlistData.body.id;
+
+        const trackUris = playlists.map(track => `spotify:track:${track.id}`);
+        await spotifyApi.addTracksToPlaylist(playlistId, trackUris);
+
+        res.status(201).json({ message: 'Playlist created successfully', playlistId });
+    } catch (error) {
+        console.error('Error saving playlist:', error);
+        res.status(500).send('Error saving playlist');
+    }
+});
+
 app.get("/playlist/display", async (req, res) => {
     const { mood } = req.query;
-    console.log("/spotify/playlist:", mood);
 
-    //TODO: add more moods to mapping 
-    // Define mood to Spotify genre mapping
     const moodToGenre = {
-        'happy': 'pop',
-        'neutral': 'indie',
-        'sad': 'acoustic',
-        'angry': 'metal',
-        'cool': 'jazz',
-        'sleepy': 'ambient'
+        'happy': ['pop', 'dance', 'electronic'],
+        'neutral': ['indie', 'alternative', 'folk'],
+        'sad': ['acoustic', 'blues', 'soul'],
+        'angry': ['metal', 'rock', 'punk'],
+        'cool': ['jazz', 'funk', 'swing'],
+        'sleepy': ['ambient', 'chill', 'lofi']
     };
 
-    const genre = moodToGenre[mood];
+    const getRandomGenre = (mood) => {
+        const genres = moodToGenre[mood];
+        return genres[Math.floor(Math.random() * genres.length)];
+    };
+
+    const genre = getRandomGenre(mood);
 
     if (!genre) {
         return res.status(400).send('Invalid mood');
@@ -237,15 +263,7 @@ app.get("/playlist/display", async (req, res) => {
     await ensureValidToken();
     
     try {
-        // const playlistData = await spotifyApi.createPlaylist(`Moodify - ${mood}`, { 'description': `A playlist for when you're feeling ${mood}`, 'public': true });
-        // const playlistId = playlistData.body.id;
-
         const tracksData = await spotifyApi.searchTracks(`genre:${genre}`, { limit: 20 });
-        const trackUris = tracksData.body.tracks.items.map(track => track.uri);
-
-        // await spotifyApi.addTracksToPlaylist(playlistId, trackUris);
-
-        // const playlist = await spotifyApi.getPlaylist(playlistId);
         const tracks = tracksData.body.tracks.items.map(track => ({
             id: track.id,
             name: track.name,

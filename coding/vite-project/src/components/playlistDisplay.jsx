@@ -12,7 +12,7 @@ const PlaylistDisplay = () => {
     useEffect(() => {
         const fetchPlaylists = async () => {
             try {
-                const response = await fetch(`http://localhost:5001/playlist/display?mood=${mood}`); // Adjust endpoint if necessary
+                const response = await fetch(`http://localhost:5001/playlist/display?mood=${mood}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -31,6 +31,7 @@ const PlaylistDisplay = () => {
 
 
     const savePlaylist = async () => {
+        console.log(JSON.stringify({ playlists, mood }));
         try {
             const response = await fetch('http://localhost:5001/playlist/save', {
                 method: 'POST',
@@ -39,14 +40,20 @@ const PlaylistDisplay = () => {
                 },
                 body: JSON.stringify({ playlists, mood }),
             });
+    
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorDetails = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, details: ${errorDetails}`);
             }
+            
             const result = await response.json();
             console.log('Playlist saved:', result);
+    
+            setError(null); 
+            window.location.href = `http://localhost:5173/dashboard`; 
         } catch (err) {
             console.error('Error saving playlist:', err);
-            setError(err.message);
+            setError(err.message || 'An unknown error occurred.');
         }
     };
 
