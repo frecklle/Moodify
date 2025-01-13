@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 
-const Dashboard = () => {
+const Dashboard = ({userId, setIsLoggedIn, setUserId}) => {
     const [playlists, setPlaylists] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -16,6 +16,7 @@ const Dashboard = () => {
                 }
                 const data = await response.json();
                 setPlaylists(data);
+                console.log('Playlists:', data);    
             } catch (err) {
                 console.error('Error fetching playlists:', err);
                 setError(err.message); // Set error message
@@ -23,10 +24,12 @@ const Dashboard = () => {
                 setLoading(false);
             }
         };
-
         fetchPlaylists();
     }, []);
 
+    const handlePlaylistClick = (playlist) => {
+        window.location.href = `http://localhost:5173/dashboard/playlist?playlistId=${playlist.id_playlist}`;
+    };
 
     if (loading) {
         return (
@@ -55,6 +58,7 @@ const Dashboard = () => {
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-4 lg:grid-cols-4">
                         {playlists.map((playlist) => (
                             <button
+                            onClick={() => handlePlaylistClick(playlist)}
                                 key={playlist.id}
                                 className="w-48 h-48 bg-[#609966] text-white rounded-md hover:bg-[#40513B] transition duration-300 ease-in-out flex items-center justify-center"
                             >

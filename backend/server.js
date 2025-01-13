@@ -365,10 +365,30 @@ app.get('/dashboard', (req, res) => {
         }
 
         res.status(200).json(rows);
-        // console.log('Query result:', rows);
     });
 });
 
+app.get('/dashboard/playlist', async (req, res) => {
+    const { playlistId } = req.query;
+
+    await ensureValidToken();
+
+    try {
+        const playlistData = await spotifyApi.getPlaylist(playlistId);
+        const tracks = playlistData.body.tracks.items.map(item => ({
+            id: item.track.id,
+            name: item.track.name,
+            artist: item.track.artists[0].name,
+            album: item.track.album.name
+        }));
+
+        res.status(200).json(tracks);
+    } catch (error) {
+        console.error('Error fetching playlist:', error);
+        res.status(500).send('Error fetching playlist');
+    }
+}
+);
 
 // Start the server
 app.listen(port, () => {
