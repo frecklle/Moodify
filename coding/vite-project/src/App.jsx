@@ -21,7 +21,6 @@ function App() {
         if (token) {
             setIsLoggedIn(true);
             setUserId(id); // Set user ID
-            console.log('User ID:', id);
         }
     }, []);
 

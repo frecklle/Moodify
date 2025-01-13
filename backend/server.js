@@ -358,7 +358,13 @@ app.get("/playlist/display", async (req, res) => {
 
 
 app.get('/dashboard', (req, res) => {
-    db.all('SELECT * FROM playlists', (err, rows) => {
+    const { userId } = req.query;
+
+    if (!userId) {
+        return res.status(400).json({ message: 'User ID is required' });
+    }
+    
+    db.all('SELECT * FROM playlists WHERE user_id = ?;', [userId], (err, rows) => {
         if (err) {
             console.error('Error querying database:', err);
             return res.status(500).json({ message: 'Error querying database' });

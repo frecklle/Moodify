@@ -24,7 +24,6 @@ const PlaylistDisplay = ({userId, setIsLoggedIn, setUserId}) => {
                 setError(err.message); // Set error message
             }
         };
-
         fetchPlaylists();
     }, [mood]);
 
@@ -50,7 +49,7 @@ const PlaylistDisplay = ({userId, setIsLoggedIn, setUserId}) => {
             console.log('Playlist saved:', result);
     
             setError(null); 
-            window.location.href = `http://localhost:5173/dashboard`; 
+            window.location.href = `http://localhost:5173/dashboard?userId=${userId}`; 
         } catch (err) {
             console.error('Error saving playlist:', err);
             setError(err.message || 'An unknown error occurred.');

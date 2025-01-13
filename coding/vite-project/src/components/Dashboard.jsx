@@ -1,15 +1,22 @@
 import React from 'react';
+import { use } from 'react';
 import { useState, useEffect } from 'react';
 
-const Dashboard = ({userId, setIsLoggedIn, setUserId}) => {
+const Dashboard = () => {
     const [playlists, setPlaylists] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [userId, setUserId] = useState(null);
 
     useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const userIdFromUrl = urlParams.get('userId');
+        if (userIdFromUrl) {
+            setUserId(userIdFromUrl);
+        }
         const fetchPlaylists = async () => {
             try {
-                const response = await fetch(`http://localhost:5001/dashboard`);
+                const response = await fetch(`http://localhost:5001/dashboard?userId=${userId}`);
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -24,8 +31,10 @@ const Dashboard = ({userId, setIsLoggedIn, setUserId}) => {
                 setLoading(false);
             }
         };
-        fetchPlaylists();
-    }, []);
+        if (userId) {
+            fetchPlaylists();
+        }
+    }, [userId]);
 
     const handlePlaylistClick = (playlist) => {
         window.location.href = `http://localhost:5173/dashboard/playlist?playlistId=${playlist.id_playlist}`;
