@@ -396,6 +396,77 @@ app.get('/dashboard/playlist', async (req, res) => {
 }
 );
 
+app.get('/dashboard/playlist/delete', async (req, res) => {
+    const { playlistId } = req.query;
+
+    if (!playlistId) {
+        return res.status(400).json({ message: 'Playlist ID is required' });
+    }
+
+    await ensureValidToken();
+
+    try {
+        // Delete playlist from Spotify
+        await spotifyApi.unfollowPlaylist(playlistId);
+
+        // Delete playlist from the database
+        db.run('DELETE FROM playlists WHERE id_playlist = ?', [playlistId], function (err) {
+            if (err) {
+                console.error('Error deleting playlist from database:', err);
+                return res.status(500).json({ message: 'Error deleting playlist from database' });
+            }
+
+            res.status(200).json({ message: 'Playlist deleted successfully' });
+        });
+    } catch (error) {
+        console.error('Error deleting playlist:', error);
+        res.status(500).send('Error deleting playlist');
+    }
+}
+);
+
+app.get('/dashboard/playlist/edit', async (req, res) => {
+    const { playlistId, newName } = req.query;
+
+    // Validate input
+    if (!playlistId || !newName) {
+        return res.status(400).json({ message: 'Playlist ID and new name are required' });
+    }
+
+    try {
+        // Ensure the Spotify token is valid
+        await ensureValidToken();
+
+        // Update the playlist name on Spotify
+        await spotifyApi.changePlaylistDetails(playlistId, { name: newName });
+
+        // Update the playlist name in the database
+        db.run('UPDATE playlists SET name = ? WHERE id_playlist = ?', [newName, playlistId], function (err) {
+            if (err) {
+                console.error('Error updating playlist name in the database:', err);
+                return res.status(500).json({ message: 'Error updating playlist name in the database' });
+            }
+
+            // If both operations succeed, respond with success
+            res.status(200).json({ message: 'Playlist name updated successfully' });
+        });
+    } catch (error) {
+        // Handle errors from the Spotify API or other unexpected issues
+        console.error('Error updating playlist name:', error);
+
+        if (error.body && error.body.error) {
+            // If Spotify API provides a specific error message
+            return res.status(error.body.error.status || 500).json({
+                message: error.body.error.message || 'Error updating playlist name on Spotify',
+            });
+        }
+
+        // Generic error fallback
+        res.status(500).json({ message: 'An unexpected error occurred while updating the playlist name' });
+    }
+});
+
+
 // Start the server
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
