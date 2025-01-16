@@ -387,8 +387,9 @@ app.get('/dashboard/playlist', async (req, res) => {
             artist: item.track.artists[0].name,
             album: item.track.album.name
         }));
+        const playlistName = playlistData.body.name;
 
-        res.status(200).json(tracks);
+        res.status(200).json({ playlistName, tracks });
     } catch (error) {
         console.error('Error fetching playlist:', error);
         res.status(500).send('Error fetching playlist');

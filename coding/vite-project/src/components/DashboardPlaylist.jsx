@@ -6,23 +6,26 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
     const [tracks, setTracks] = useState([]);
     const [error, setError] = useState(null);
     const [newName, setNewName] = useState('');
+    const [name, setName] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [generatedLink, setGeneratedLink] = useState('');
 
     useEffect(() => {
         const fetchPlaylist = async () => {
             try {
-                const response = await fetch(`http://localhost:5001/dashboard/playlist?playlistId=${playlistId}`);
+            const response = await fetch(`http://localhost:5001/dashboard/playlist?playlistId=${playlistId}`);
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                setTracks(data);
-                console.log('Tracks:', data);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            setTracks(data.tracks);
+            setName(data.playlistName);
+            console.log('Playlist Name:', data.playlistName);
+            console.log('Tracks:', data.tracks);
             } catch (err) {
-                console.error('Error fetching playlists:', err);
-                setError(err.message);
+            console.error('Error fetching playlists:', err);
+            setError(err.message);
             }
         };
 
@@ -84,24 +87,29 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
             console.error('Error generating link:', err);
             setError(err.message);
         }
-    };
+    }
 
     return (
         <div className="flex flex-col text-black justify-center items-center w-[100vw] min-h-screen bg-[#EDF1D6]">
             <h2 className="text-3xl font-bold mb-4 text-[#40513B]">Created Playlists</h2>
             {tracks.length > 0 && (
                 <div className="mb-4">
+                    <h3 className="text-xl font-semibold mb-2">{name}</h3>
                     {isEditing && (
-                        <input
-                            type="text"
-                            value={newName}
-                            onChange={(e) => setNewName(e.target.value)}
-                            placeholder="Enter new playlist name"
-                            className="px-4 py-2 border rounded mr-2"
-                        />
+                        <>
+                            <input
+                                type="text"
+                                value={newName}
+                                onChange={(e) => setNewName(e.target.value)}
+                                placeholder="Enter new playlist name"
+                                className="px-4 py-2 border rounded mr-2"
+                            />
+                            <button onClick={handleEdit} className="px-4 py-2 bg-blue-500 text-white rounded mr-2">Save</button>
+                        </>
                     )}
-                    <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-blue-500 text-white rounded mr-2">Edit</button>
-                    <button onClick={handleEdit} className="px-4 py-2 bg-blue-500 text-white rounded mr-2">Save</button>
+                    {!isEditing && (
+                        <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-blue-500 text-white rounded mr-2">Edit</button>
+                    )}
                     <button onClick={handleDelete} className="px-4 py-2 bg-red-500 text-white rounded">Delete</button>
                     <button onClick={handleGenerateLink} className="px-4 py-2 bg-green-500 text-white rounded">Generate Link</button>
                     {generatedLink && (
