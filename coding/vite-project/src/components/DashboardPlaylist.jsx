@@ -7,6 +7,7 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
     const [error, setError] = useState(null);
     const [newName, setNewName] = useState('');
     const [isEditing, setIsEditing] = useState(false);
+    const [generatedLink, setGeneratedLink] = useState('');
 
     useEffect(() => {
         const fetchPlaylist = async () => {
@@ -68,6 +69,23 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
         }
     };
 
+    const handleGenerateLink = async () => {
+        try {
+            const response = await fetch(`http://localhost:5001/dashboard/playlist/link?playlistId=${playlistId}`);
+
+            if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Generated link:', data.link);
+            setGeneratedLink(data.link);
+        } catch (err) {
+            console.error('Error generating link:', err);
+            setError(err.message);
+        }
+    };
+
     return (
         <div className="flex flex-col text-black justify-center items-center w-[100vw] min-h-screen bg-[#EDF1D6]">
             <h2 className="text-3xl font-bold mb-4 text-[#40513B]">Created Playlists</h2>
@@ -85,6 +103,10 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
                     <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-blue-500 text-white rounded mr-2">Edit</button>
                     <button onClick={handleEdit} className="px-4 py-2 bg-blue-500 text-white rounded mr-2">Save</button>
                     <button onClick={handleDelete} className="px-4 py-2 bg-red-500 text-white rounded">Delete</button>
+                    <button onClick={handleGenerateLink} className="px-4 py-2 bg-green-500 text-white rounded">Generate Link</button>
+                    {generatedLink && (
+                        <p className="mt-2 text-blue-500">Generated Link: <a href={generatedLink} target="_blank" rel="noopener noreferrer">{generatedLink}</a></p>
+                    )}
                 </div>
             )}
             {error ? (

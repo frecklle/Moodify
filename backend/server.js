@@ -425,6 +425,20 @@ app.get('/dashboard/playlist/delete', async (req, res) => {
 }
 );
 
+app.get('/dashboard/playlist/link', async (req, res) => {
+    const { playlistId } = req.query;
+
+    try {
+        const playlistData = await spotifyApi.getPlaylist(playlistId);
+        const externalUrl = playlistData.body.external_urls.spotify;
+
+        res.status(200).json({ link: externalUrl });
+    } catch (error) {
+        console.error('Error fetching playlist link:', error);
+        res.status(500).send('Error fetching playlist link');
+    }
+});
+
 app.get('/dashboard/playlist/edit', async (req, res) => {
     const { playlistId, newName } = req.query;
 
