@@ -481,6 +481,59 @@ app.get('/dashboard/playlist/edit', async (req, res) => {
     }
 });
 
+app.get('/dashboard/playlist/search', async (req, res) => {
+    const { query } = req.query;
+
+    if (!query) {
+        return res.status(400).json({ message: 'Query is required' });
+    }
+
+    await ensureValidToken();
+
+    try {
+        const searchResults = await spotifyApi.searchTracks(query, { limit: 5 });
+        const tracks = searchResults.body.tracks.items.map(track => ({
+            id: track.id,
+            name: track.name,
+            artist: track.artists[0].name,
+            album: track.album.name
+        }));
+
+        res.status(200).json(tracks);
+    } catch (error) {
+        console.error('Error searching tracks:', error);
+        res.status(500).send('Error searching tracks');
+    }
+});
+
+
+app.get('/dashboard/playlist/add', async (req, res) => {
+    const { playlistId, trackId } = req.query;
+
+    if (!playlistId || !trackId) {
+        return res.status(400).json({ message: 'Playlist ID and track ID are required' });
+    }
+
+    await ensureValidToken();
+
+    try {
+        await spotifyApi.addTracksToPlaylist(playlistId, [`spotify:track:${trackId}`]);
+
+        const trackData = await spotifyApi.getTrack(trackId);
+        const track = {
+            id: trackData.body.id,
+            name: trackData.body.name,
+            artist: trackData.body.artists[0].name,
+            album: trackData.body.album.name
+        };
+
+        res.status(200).json({ message: 'Track added successfully', track });
+    } catch (error) {
+        console.error('Error adding track to playlist:', error);
+        res.status(500).send('Error adding track to playlist');
+    }
+});
+
 
 // Start the server
 app.listen(port, () => {

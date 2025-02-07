@@ -11,6 +11,8 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
     const [generatedLink, setGeneratedLink] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
+    const [searchTracksResults, setSearchTracksResults] = useState([]);
+
 
     useEffect(() => {
         const fetchPlaylist = async () => {
@@ -23,8 +25,6 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
                 const data = await response.json();
                 setTracks(data.tracks);
                 setName(data.playlistName);
-                console.log('Playlist Name:', data.playlistName);
-                console.log('Tracks:', data.tracks);
             } catch (err) {
                 console.error('Error fetching playlists:', err);
                 setError(err.message);
@@ -91,6 +91,7 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
         }
     }
 
+
     const handleSearch = async (query) => {
         try {
             const response = await fetch(`http://localhost:5001/dashboard/playlist/search?query=${encodeURIComponent(query)}`);
@@ -100,8 +101,7 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
             }
 
             const data = await response.json();
-            console.log('Search results:', data.tracks);
-            setSearchResults(data.tracks);
+            setSearchTracksResults(data);
         } catch (err) {
             console.error('Error searching for tracks:', err);
             setError(err.message);
@@ -110,9 +110,7 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
 
     const handleAddTrack = async (trackId) => {
         try {
-            const response = await fetch(`http://localhost:5001/dashboard/playlist/add?playlistId=${playlistId}&trackId=${trackId}`, {
-                method: 'POST'
-            });
+            const response = await fetch(`http://localhost:5001/dashboard/playlist/add?playlistId=${playlistId}&trackId=${trackId}`);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -132,6 +130,35 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
     return (
         <div className="flex flex-col text-black justify-center items-center w-[100vw] min-h-screen bg-[#EDF1D6]">
             <h2 className="text-3xl font-bold mb-4 text-[#40513B]">Created Playlists</h2>
+            
+            {searchTracksResults.length > 0 && isSearching && (
+                <div className="mt-4">
+                    <h3 className="text-xl font-semibold mb-2">Search Tracks Results</h3>
+                    <table className="table-auto mb-4 border-2 border-[#40513B] rounded-lg">
+                        <thead>
+                            <tr>
+                                <th className="px-4 py-2 border-2 border-[#40513B] rounded-tl-lg">Name</th>
+                                <th className="px-4 py-2 border-2 border-[#40513B]">Artist</th>
+                                <th className="px-4 py-2 border-2 border-[#40513B] rounded-tr-lg">Album</th>
+                                <th className="px-4 py-2 border-2 border-[#40513B]">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {searchTracksResults.map((track) => (
+                                <tr key={track.id}>
+                                    <td className="border-2 px-4 py-2 border-[#40513B]">{track.name}</td>
+                                    <td className="border-2 px-4 py-2 border-[#40513B]">{track.artist}</td>
+                                    <td className="border-2 px-4 py-2 border-[#40513B]">{track.album}</td>
+                                    <td className="border-2 px-4 py-2 border-[#40513B]">
+                                        <button onClick={() => handleAddTrack(track.id)} className="px-4 py-2 bg-green-500 text-white rounded">Add</button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+            
             {tracks.length > 0 && (
                 <div className="mb-4">
                     <h3 className="text-xl font-semibold mb-2">{name}</h3>
@@ -165,6 +192,7 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
                                 className="px-4 py-2 border rounded mb-2"
                             />
                             <button onClick={() => handleSearch(searchQuery)} className="px-4 py-2 bg-blue-500 text-white rounded">Search Tracks</button>
+                            <button onClick={() => setIsSearching(false)} className="px-4 py-2 bg-gray-500 text-white rounded ml-2">Hide Search</button>
                         </>
                     )}
                     {!isSearching && (
