@@ -8,7 +8,7 @@ import Profile from "./components/Profile.jsx";
 import Settings from "./components/Settings.jsx";
 import PlaylistDisplay from "./components/PlaylistDisplay.jsx";
 import Dashboard from './components/Dashboard.jsx';
-
+import DashboardPlaylist from './components/DashboardPlaylist.jsx';
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -30,8 +30,9 @@ function App() {
                 <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
                 <Routes>
                     <Route path="/" element={<Home />} />
-                    <Route path="/playlist/display" element={<PlaylistDisplay setIsLoggedIn={setIsLoggedIn} setUserId={setUserId} />} />
+                    <Route path="/playlist/display" element={<PlaylistDisplay setIsLoggedIn={setIsLoggedIn} userId={userId} setUserId={setUserId} />} />
                     <Route path="/dashboard" element={<Dashboard setIsLoggedIn={setIsLoggedIn} setUserId={setUserId} />} />
+                    <Route path="/dashboard/playlist" element={<DashboardPlaylist setIsLoggedIn={setIsLoggedIn} setUserId={setUserId} userId={userId}/>} />
                     <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} setUserId={setUserId} />} />
                     <Route path="/register" element={<Register setIsRegistered={setIsLoggedIn} />} />
                     <Route path="/profile" element={isLoggedIn ? <Profile userId={userId} /> : <Login setIsLoggedIn={setIsLoggedIn} />} />

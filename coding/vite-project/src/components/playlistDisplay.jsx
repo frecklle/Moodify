@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 
-const PlaylistDisplay = () => {
+const PlaylistDisplay = ({userId, setIsLoggedIn, setUserId}) => {
     const queryParams = new URLSearchParams(window.location.search);
     const mood = queryParams.get('mood');
     // State to store playlists
@@ -19,13 +19,11 @@ const PlaylistDisplay = () => {
                 }
                 const data = await response.json();
                 setPlaylists(data); // Set fetched playlists to state
-                console.log('Playlists fetched:', data);
             } catch (err) {
                 console.error('Error fetching playlists:', err);
                 setError(err.message); // Set error message
             }
         };
-
         fetchPlaylists();
     }, [mood]);
 
@@ -39,7 +37,7 @@ const PlaylistDisplay = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ playlists, mood }),
+                body: JSON.stringify({ playlists, mood, userId }),
             });
           
             if (!response.ok) {
@@ -51,7 +49,7 @@ const PlaylistDisplay = () => {
             console.log('Playlist saved:', result);
     
             setError(null); 
-            window.location.href = `http://localhost:5173/dashboard`; 
+            window.location.href = `http://localhost:5173/dashboard?userId=${userId}`; 
         } catch (err) {
             console.error('Error saving playlist:', err);
             setError(err.message || 'An unknown error occurred.');

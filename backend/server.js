@@ -3,7 +3,7 @@ const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const spotifyApi = require('./spotifyApi');
-
+const bcrypt = require('bcrypt');
 
 const app = express();
 const port = 5001;
@@ -279,9 +279,9 @@ const ensureValidToken = async () => {
 
 
 app.post("/playlist/save", async (req, res) => {
-    const { playlists, mood } = req.body;
+    const { playlists, mood, userId } = req.body;
 
-    if (!playlists || !Array.isArray(playlists)) {
+    if (!playlists || !Array.isArray(playlists) || !userId) {
         return res.status(400).send('Invalid request data');
     }
 
@@ -290,11 +290,23 @@ app.post("/playlist/save", async (req, res) => {
     try {
         const playlistData = await spotifyApi.createPlaylist(`Moodify - ${mood}`, { 'description': `A playlist for when you're feeling ${mood}`, 'public': true });
         const playlistId = playlistData.body.id;
+        const playlistName = playlistData.body.name;
 
         const trackUris = playlists.map(track => `spotify:track:${track.id}`);
         await spotifyApi.addTracksToPlaylist(playlistId, trackUris);
 
-        res.status(201).json({ message: 'Playlist created successfully', playlistId });
+        // Save playlist to the database
+        db.run('INSERT INTO playlists (id_playlist, user_id, name) VALUES (?, ?, ?)', [playlistId, userId, playlistName], function (err) {
+            
+            if (err) {
+                console.error('Error saving playlist to database:', err);
+                return res.status(500).send('Error saving playlist to database');
+            }
+
+            res.status(201).json({ message: 'Playlist created and saved successfully', playlistId });
+            console.error('Playlist created and saved successfully', playlistId );
+
+        });
     } catch (error) {
         console.error('Error saving playlist:', error);
         res.status(500).send('Error saving playlist');
@@ -343,6 +355,185 @@ app.get("/playlist/display", async (req, res) => {
         res.status(500).send('Error creating playlist');
     }
   });
+
+
+app.get('/dashboard', (req, res) => {
+    const { userId } = req.query;
+
+    if (!userId) {
+        return res.status(400).json({ message: 'User ID is required' });
+    }
+    
+    db.all('SELECT * FROM playlists WHERE user_id = ?;', [userId], (err, rows) => {
+        if (err) {
+            console.error('Error querying database:', err);
+            return res.status(500).json({ message: 'Error querying database' });
+        }
+
+        res.status(200).json(rows);
+    });
+});
+
+app.get('/dashboard/playlist', async (req, res) => {
+    const { playlistId } = req.query;
+
+    await ensureValidToken();
+
+    try {
+        const playlistData = await spotifyApi.getPlaylist(playlistId);
+        const tracks = playlistData.body.tracks.items.map(item => ({
+            id: item.track.id,
+            name: item.track.name,
+            artist: item.track.artists[0].name,
+            album: item.track.album.name
+        }));
+        const playlistName = playlistData.body.name;
+
+        res.status(200).json({ playlistName, tracks });
+    } catch (error) {
+        console.error('Error fetching playlist:', error);
+        res.status(500).send('Error fetching playlist');
+    }
+}
+);
+
+app.get('/dashboard/playlist/delete', async (req, res) => {
+    const { playlistId } = req.query;
+
+    if (!playlistId) {
+        return res.status(400).json({ message: 'Playlist ID is required' });
+    }
+
+    await ensureValidToken();
+
+    try {
+        // Delete playlist from Spotify
+        await spotifyApi.unfollowPlaylist(playlistId);
+
+        // Delete playlist from the database
+        db.run('DELETE FROM playlists WHERE id_playlist = ?', [playlistId], function (err) {
+            if (err) {
+                console.error('Error deleting playlist from database:', err);
+                return res.status(500).json({ message: 'Error deleting playlist from database' });
+            }
+
+            res.status(200).json({ message: 'Playlist deleted successfully' });
+        });
+    } catch (error) {
+        console.error('Error deleting playlist:', error);
+        res.status(500).send('Error deleting playlist');
+    }
+}
+);
+
+app.get('/dashboard/playlist/link', async (req, res) => {
+    const { playlistId } = req.query;
+
+    try {
+        const playlistData = await spotifyApi.getPlaylist(playlistId);
+        const externalUrl = playlistData.body.external_urls.spotify;
+
+        res.status(200).json({ link: externalUrl });
+    } catch (error) {
+        console.error('Error fetching playlist link:', error);
+        res.status(500).send('Error fetching playlist link');
+    }
+});
+
+app.get('/dashboard/playlist/edit', async (req, res) => {
+    const { playlistId, newName } = req.query;
+
+    // Validate input
+    if (!playlistId || !newName) {
+        return res.status(400).json({ message: 'Playlist ID and new name are required' });
+    }
+
+    try {
+        // Ensure the Spotify token is valid
+        await ensureValidToken();
+
+        // Update the playlist name on Spotify
+        await spotifyApi.changePlaylistDetails(playlistId, { name: newName });
+
+        // Update the playlist name in the database
+        db.run('UPDATE playlists SET name = ? WHERE id_playlist = ?', [newName, playlistId], function (err) {
+            if (err) {
+                console.error('Error updating playlist name in the database:', err);
+                return res.status(500).json({ message: 'Error updating playlist name in the database' });
+            }
+
+            // If both operations succeed, respond with success
+            res.status(200).json({ message: 'Playlist name updated successfully' });
+        });
+    } catch (error) {
+        // Handle errors from the Spotify API or other unexpected issues
+        console.error('Error updating playlist name:', error);
+
+        if (error.body && error.body.error) {
+            // If Spotify API provides a specific error message
+            return res.status(error.body.error.status || 500).json({
+                message: error.body.error.message || 'Error updating playlist name on Spotify',
+            });
+        }
+
+        // Generic error fallback
+        res.status(500).json({ message: 'An unexpected error occurred while updating the playlist name' });
+    }
+});
+
+app.get('/dashboard/playlist/search', async (req, res) => {
+    const { query } = req.query;
+
+    if (!query) {
+        return res.status(400).json({ message: 'Query is required' });
+    }
+
+    await ensureValidToken();
+
+    try {
+        const searchResults = await spotifyApi.searchTracks(query, { limit: 5 });
+        const tracks = searchResults.body.tracks.items.map(track => ({
+            id: track.id,
+            name: track.name,
+            artist: track.artists[0].name,
+            album: track.album.name
+        }));
+
+        res.status(200).json(tracks);
+    } catch (error) {
+        console.error('Error searching tracks:', error);
+        res.status(500).send('Error searching tracks');
+    }
+});
+
+
+app.get('/dashboard/playlist/add', async (req, res) => {
+    const { playlistId, trackId } = req.query;
+
+    if (!playlistId || !trackId) {
+        return res.status(400).json({ message: 'Playlist ID and track ID are required' });
+    }
+
+    await ensureValidToken();
+
+    try {
+        await spotifyApi.addTracksToPlaylist(playlistId, [`spotify:track:${trackId}`]);
+
+        const trackData = await spotifyApi.getTrack(trackId);
+        const track = {
+            id: trackData.body.id,
+            name: trackData.body.name,
+            artist: trackData.body.artists[0].name,
+            album: trackData.body.album.name
+        };
+
+        res.status(200).json({ message: 'Track added successfully', track });
+    } catch (error) {
+        console.error('Error adding track to playlist:', error);
+        res.status(500).send('Error adding track to playlist');
+    }
+});
+
 
 // Start the server
 app.listen(port, () => {
