@@ -1,14 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const Profile = () => {
-    const [name, setName] = useState('John Doe');
-    const [email, setEmail] = useState('john.doe@example.com');
-    const [bio, setBio] = useState('This is my bio.');
+const Profile = ({ userId }) => {
+    const [name, setName] = useState('');
+    const [bio, setBio] = useState('');
+
+    useEffect(() => {
+        if (userId) {
+            // Retrieve profile data from local storage when the component mounts
+            const savedName = localStorage.getItem(`${userId}_profileName`);
+            const savedBio = localStorage.getItem(`${userId}_profileBio`);
+            if (savedName) setName(savedName);
+            if (savedBio) setBio(savedBio);
+        }
+    }, [userId]);
 
     const handleSave = () => {
-        // Simulate saving data to the server
-        console.log('Profile updated:', {name, email, bio});
-        alert('Profile updated successfully!');
+        if (userId) {
+            // Save profile data to local storage
+            localStorage.setItem(`${userId}_profileName`, name);
+            localStorage.setItem(`${userId}_profileBio`, bio);
+            console.log('Profile updated:', { name, bio });
+            alert('Profile updated successfully!');
+        } else {
+            alert('User ID is required to save profile data.');
+        }
     };
 
     return (
