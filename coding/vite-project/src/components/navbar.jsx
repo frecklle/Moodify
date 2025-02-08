@@ -17,8 +17,10 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
     };
 
     const handleClick = (nav) => {
+        const userId = localStorage.getItem('userId'); // Retrieve userId from localStorage
+
         if (nav === "Playlists") {
-            window.location.href = "/dashboard";
+            window.location.href = `http://localhost:5173/dashboard?userId=${userId}`;
         } else if (nav === "Collaborate") {
             window.location.href = "/collaborate";
         }

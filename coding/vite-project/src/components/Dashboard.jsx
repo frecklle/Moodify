@@ -1,6 +1,4 @@
-import React from 'react';
-import { use } from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Dashboard = () => {
     const [playlists, setPlaylists] = useState([]);
@@ -23,7 +21,7 @@ const Dashboard = () => {
                 }
                 const data = await response.json();
                 setPlaylists(data);
-                console.log('Playlists:', data);    
+                console.log('Playlists:', data);
             } catch (err) {
                 console.error('Error fetching playlists:', err);
                 setError(err.message); // Set error message
@@ -42,46 +40,52 @@ const Dashboard = () => {
 
     if (loading) {
         return (
-            <div className="flex flex-col text-black justify-center items-center w-[100vw] min-h-screen bg-[#EDF1D6]">
-                <h2 className="text-3xl font-bold mb-4 text-[#40513B]">Loading playlists...</h2>
+            <div className="flex flex-col justify-center items-center w-[100vw] min-h-screen bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] p-6">
+                <h2 className="text-4xl font-bold mb-8 text-[#40513B] animate-pulse">
+                    Loading playlists...
+                </h2>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="flex flex-col text-black justify-center items-center w-[100vw] min-h-screen bg-[#EDF1D6]">
-                <h2 className="text-3xl font-bold mb-4 text-red-500">Error</h2>
-                <p className="text-red-500">{error}</p>
+            <div className="flex flex-col justify-center items-center w-[100vw] min-h-screen bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] p-6">
+                <h2 className="text-4xl font-bold mb-8 text-red-500">Error</h2>
+                <p className="text-red-500 text-lg">{error}</p>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col text-black justify-center items-center w-[100vw] min-h-screen bg-[#EDF1D6]">
-            <h2 className="text-3xl font-bold mb-4 text-[#40513B]">Created Playlists</h2>
-            {error ? (
-                <p className="text-red-500">Error: {error}</p>
-            ) : playlists.length > 0 ? (
-                <div className="flex flex-col items-center">
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-4 lg:grid-cols-4">
+        <div className="flex flex-col justify-center items-center w-[100vw] min-h-screen bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] p-6">
+            {/* Header */}
+            <h2 className="text-4xl font-bold mb-8 text-[#40513B] animate-fade-in">
+                Your Playlists
+            </h2>
+
+            {/* Playlist List */}
+            {playlists.length > 0 ? (
+                <div className="w-full max-w-4xl">
+                    <ul className="space-y-6">
                         {playlists.map((playlist) => (
-                            <button
-                            onClick={() => handlePlaylistClick(playlist)}
-                                key={playlist.id}
-                                className="w-48 h-48 bg-[#609966] text-white rounded-md hover:bg-[#40513B] transition duration-300 ease-in-out flex items-center justify-center"
-                            >
-                                <div className="text-center">
-                                    <h3 className="text-xl font-bold">{playlist.name}</h3>
-                                </div>
-                            </button>
+                            <li key={playlist.id} className="flex items-center justify-between bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out">
+                                <span className="text-xl font-semibold text-[#40513B]">{playlist.name}</span>
+                                <button
+                                    onClick={() => handlePlaylistClick(playlist)}
+                                    className="px-6 py-3 bg-gradient-to-r from-[#609966] to-[#40513B] text-white text-lg font-semibold rounded-xl hover:bg-[#40513B] transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                                >
+                                    View Playlist
+                                </button>
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                 </div>
             ) : (
-                <p>There are no playlists yet.</p>
+                <p className="text-[#40513B] text-lg">You have no playlists yet. Create one to get started!</p>
             )}
         </div>
     );
 };
+
 export default Dashboard;

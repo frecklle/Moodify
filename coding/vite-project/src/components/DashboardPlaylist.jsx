@@ -11,8 +11,7 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
     const [generatedLink, setGeneratedLink] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    const [searchTracksResults, setSearchTracksResults] = useState([]);
-
+    const [isSearching, setIsSearching] = useState(false);
 
     useEffect(() => {
         const fetchPlaylist = async () => {
@@ -89,8 +88,7 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
             console.error('Error generating link:', err);
             setError(err.message);
         }
-    }
-
+    };
 
     const handleSearch = async (query) => {
         try {
@@ -101,7 +99,7 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
             }
 
             const data = await response.json();
-            setSearchTracksResults(data);
+            setSearchResults(data);
         } catch (err) {
             console.error('Error searching for tracks:', err);
             setError(err.message);
@@ -125,133 +123,139 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
         }
     };
 
-    const [isSearching, setIsSearching] = useState(false);
-
     return (
-        <div className="flex flex-col text-black justify-center items-center w-[100vw] min-h-screen bg-[#EDF1D6]">
-            <h2 className="text-3xl font-bold mb-4 text-[#40513B]">Created Playlists</h2>
-            
-            {searchTracksResults.length > 0 && isSearching && (
-                <div className="mt-4">
-                    <h3 className="text-xl font-semibold mb-2">Search Tracks Results</h3>
-                    <table className="table-auto mb-4 border-2 border-[#40513B] rounded-lg">
-                        <thead>
-                            <tr>
-                                <th className="px-4 py-2 border-2 border-[#40513B] rounded-tl-lg">Name</th>
-                                <th className="px-4 py-2 border-2 border-[#40513B]">Artist</th>
-                                <th className="px-4 py-2 border-2 border-[#40513B] rounded-tr-lg">Album</th>
-                                <th className="px-4 py-2 border-2 border-[#40513B]">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {searchTracksResults.map((track) => (
-                                <tr key={track.id}>
-                                    <td className="border-2 px-4 py-2 border-[#40513B]">{track.name}</td>
-                                    <td className="border-2 px-4 py-2 border-[#40513B]">{track.artist}</td>
-                                    <td className="border-2 px-4 py-2 border-[#40513B]">{track.album}</td>
-                                    <td className="border-2 px-4 py-2 border-[#40513B]">
-                                        <button onClick={() => handleAddTrack(track.id)} className="px-4 py-2 bg-green-500 text-white rounded">Add</button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
-            
-            {tracks.length > 0 && (
-                <div className="mb-4">
-                    <h3 className="text-xl font-semibold mb-2">{name}</h3>
-                    {isEditing && (
-                        <>
-                            <input
-                                type="text"
-                                value={newName}
-                                onChange={(e) => setNewName(e.target.value)}
-                                placeholder="Enter new playlist name"
-                                className="px-4 py-2 border rounded mr-2"
-                            />
-                            <button onClick={handleEdit} className="px-4 py-2 bg-blue-500 text-white rounded mr-2">Save</button>
-                        </>
-                    )}
-                    {!isEditing && (
-                        <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-blue-500 text-white rounded mr-2">Edit</button>
-                    )}
-                    <button onClick={handleDelete} className="px-4 py-2 bg-red-500 text-white rounded">Delete</button>
-                    <button onClick={handleGenerateLink} className="px-4 py-2 bg-green-500 text-white rounded">Generate Link</button>
-                    {generatedLink && (
-                        <p className="mt-2 text-blue-500">Generated Link: <a href={generatedLink} target="_blank" rel="noopener noreferrer">{generatedLink}</a></p>
-                    )}
+        <div className="flex flex-col justify-center items-center w-[100vw] min-h-screen bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] p-6 pt-24"> {/* Add pt-24 to offset the header */}
+            {/* Header */}
+            <h2 className="text-4xl font-bold mb-8 text-[#40513B] animate-fade-in">
+                {name || "Playlist Details"}
+            </h2>
+
+            {/* Playlist Actions */}
+            <div className="flex flex-wrap text-black gap-4 mb-8">
+                {isEditing ? (
+                    <div className="flex items-center gap-4">
+                        <input
+                            type="text"
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            placeholder="Enter new playlist name"
+                            className="px-4 py-2 border bg-white border-[#40513B] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#609966]"
+                        />
+                        <button
+                            onClick={handleEdit}
+                            className="px-6 py-2 bg-gradient-to-r from-[#609966] to-[#40513B] text-white rounded-xl hover:from-[#40513B] hover:to-[#609966] transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                        >
+                            Save
+                        </button>
+                        <button
+                            onClick={() => setIsEditing(false)}
+                            className="px-6 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => setIsEditing(true)}
+                        className="text-black px-6 py-2 bg-gradient-to-r from-[#609966] to-[#40513B] text-white rounded-xl hover:from-[#40513B] hover:to-[#609966] transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                    >
+                        Edit Name
+                    </button>
+                )}
+                <button
+                    onClick={handleDelete}
+                    className="px-6 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                >
+                    Delete Playlist
+                </button>
+                <button
+                    onClick={handleGenerateLink}
+                    className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                >
+                    Generate Link
+                </button>
+                {generatedLink && (
+                    <p className="text-blue-500 mt-2">
+                        Generated Link: <a href={generatedLink} target="_blank" rel="noopener noreferrer" className="underline">{generatedLink}</a>
+                    </p>
+                )}
+            </div>
+
+            {/* Search Section */}
+            <div className="w-full text-black max-w-4xl mb-8">
+                <div className="flex items-center gap-4">
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                handleSearch(searchQuery);
+                            }
+                        }}
+                        placeholder="Search for tracks"
+                        className=" bg-white text-black w-full px-4 py-2 border border-[#40513B] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#609966]"
+                    />
+                    <button
+                        onClick={() => handleSearch(searchQuery)}
+                        className="px-6 py-2 bg-gradient-to-r from-[#609966] to-[#40513B] text-white rounded-xl hover:from-[#40513B] hover:to-[#609966] transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                    >
+                        Search
+                    </button>
                     {isSearching && (
-                        <>
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search for tracks"
-                                className="px-4 py-2 border rounded mb-2"
-                            />
-                            <button onClick={() => handleSearch(searchQuery)} className="px-4 py-2 bg-blue-500 text-white rounded">Search Tracks</button>
-                            <button onClick={() => setIsSearching(false)} className="px-4 py-2 bg-gray-500 text-white rounded ml-2">Hide Search</button>
-                        </>
-                    )}
-                    {!isSearching && (
-                        <button onClick={() => setIsSearching(true)} className="px-4 py-2 bg-blue-500 text-white rounded">Search Tracks</button>
-                    )}
-                    {searchResults.length > 0 && (
-                        <div className="mt-4">
-                            <h3 className="text-xl font-semibold mb-2">Search Results</h3>
-                            <table className="table-auto mb-4 border-2 border-[#40513B] rounded-lg">
-                                <thead>
-                                    <tr>
-                                        <th className="px-4 py-2 border-2 border-[#40513B] rounded-tl-lg">Name</th>
-                                        <th className="px-4 py-2 border-2 border-[#40513B]">Artist</th>
-                                        <th className="px-4 py-2 border-2 border-[#40513B] rounded-tr-lg">Album</th>
-                                        <th className="px-4 py-2 border-2 border-[#40513B]">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {searchResults.map((track) => (
-                                        <tr key={track.id}>
-                                            <td className="border-2 px-4 py-2 border-[#40513B]">{track.name}</td>
-                                            <td className="border-2 px-4 py-2 border-[#40513B]">{track.artist}</td>
-                                            <td className="border-2 px-4 py-2 border-[#40513B]">{track.album}</td>
-                                            <td className="border-2 px-4 py-2 border-[#40513B]">
-                                                <button onClick={() => handleAddTrack(track.id)} className="px-4 py-2 bg-green-500 text-white rounded">Add</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                        <button
+                            onClick={() => setIsSearching(false)}
+                            className="px-6 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                        >
+                            Hide Search
+                        </button>
                     )}
                 </div>
-            )}
-            {error ? (
-                <p className="text-red-500">Error: {error}</p>
-            ) : tracks.length > 0 ? (
-                <div className="flex flex-col items-center">
-                    <table className="table-auto mb-4 border-2 border-[#40513B] rounded-lg">
-                        <thead>
-                            <tr>
-                                <th className="px-4 py-2 border-2 border-[#40513B] rounded-tl-lg">Name</th>
-                                <th className="px-4 py-2 border-2 border-[#40513B]">Artist</th>
-                                <th className="px-4 py-2 border-2 border-[#40513B] rounded-tr-lg">Album</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {tracks.map((track) => (
-                                <tr key={track.id}>
-                                    <td className="border-2 px-4 py-2 border-[#40513B]">{track.name}</td>
-                                    <td className="border-2 px-4 py-2 border-[#40513B]">{track.artist}</td>
-                                    <td className="border-2 px-4 py-2 border-[#40513B]">{track.album}</td>
-                                </tr>
+                {searchResults.length > 0 && (
+                    <div className="mt-4">
+                        <h3 className="text-xl font-semibold mb-4 text-[#40513B]">Search Results</h3>
+                        <ul className="space-y-4">
+                            {searchResults.map((track) => (
+                                <li key={track.id} className="flex items-center justify-between bg-white p-4 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out">
+                                    <div>
+                                        <p className="text-lg font-semibold text-[#40513B]">{track.name}</p>
+                                        <p className="text-sm text-gray-600">{track.artist} - {track.album}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleAddTrack(track.id)}
+                                        className="px-4 py-2 bg-gradient-to-r from-[#609966] to-[#40513B] text-white rounded-xl hover:from-[#40513B] hover:to-[#609966] transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                                    >
+                                        Add
+                                    </button>
+                                </li>
                             ))}
-                        </tbody>
-                    </table>
+                        </ul>
+                    </div>
+                )}
+            </div>
+
+            {/* Tracks List */}
+            {tracks.length > 0 ? (
+                <div className="w-full max-w-4xl h-96 overflow-y-auto bg-white rounded-xl p-4 shadow-lg">
+                    <h3 className="text-2xl font-bold mb-6 text-[#40513B]">Tracks</h3>
+                    <ul className="space-y-4">
+                        {tracks.map((track) => (
+                            <li key={track.id} className="flex items-center justify-between bg-white p-4 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out">
+                                <div>
+                                    <p className="text-lg font-semibold text-[#40513B]">{track.name}</p>
+                                    <p className="text-sm text-gray-600">{track.artist} - {track.album}</p>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             ) : (
-                <p>Loading playlists...</p>
+                <p className="text-[#40513B] text-lg">No tracks found in this playlist.</p>
+            )}
+
+            {/* Error Message */}
+            {error && (
+                <p className="text-red-500 text-lg mt-6">{error}</p>
             )}
         </div>
     );

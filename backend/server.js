@@ -262,29 +262,30 @@ app.get('/spotify/callback', (req, res) => {
         return;
     }
 
-    spotifyApi.authorizationCodeGrant(code).then(data => {
-        const accessToken = data.body['access_token'];
-        const refreshToken = data.body['refresh_token'];
-        const expiresIn = data.body['expires_in'];
+    spotifyApi.authorizationCodeGrant(code)
+        .then(data => {
+            const accessToken = data.body['access_token'];
+            const refreshToken = data.body['refresh_token'];
+            const expiresIn = data.body['expires_in'];
 
-        spotifyApi.setAccessToken(accessToken);
-        spotifyApi.setRefreshToken(refreshToken);
+            spotifyApi.setAccessToken(accessToken);
+            spotifyApi.setRefreshToken(refreshToken);
 
-        setInterval(async () => {
-            const data = await spotifyApi.refreshAccessToken();
-            const accessTokenRefreshed = data.body['access_token'];
-            spotifyApi.setAccessToken(accessTokenRefreshed);
-        }, expiresIn / 2 * 1000); // Refresh halfway before expiration.
+            // Refresh the access token periodically
+            setInterval(async () => {
+                const data = await spotifyApi.refreshAccessToken();
+                const accessTokenRefreshed = data.body['access_token'];
+                spotifyApi.setAccessToken(accessTokenRefreshed);
+            }, expiresIn / 2 * 1000); // Refresh halfway before expiration.
 
-        console.log('Redirecting to home page...');
-        res.redirect('http://localhost:5173/'); // Should redirect to the home page
-
-    }).catch(error => {
-        console.error('Error getting Tokens:', error);
-        res.send('Error getting tokens');
-    });
+            // Redirect to the home page after successful authentication
+            res.redirect('http://localhost:5173/');
+        })
+        .catch(error => {
+            console.error('Error getting Tokens:', error);
+            res.redirect('http://localhost:5173/settings?error=spotify_auth_failed');
+        });
 });
-
 
 const refreshAccessToken = async () => {
     try {
