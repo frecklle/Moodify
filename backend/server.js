@@ -33,7 +33,7 @@ db.run(`
 `);
 db.run (`
     CREATE TABLE IF NOT EXISTS playlists (
-        id_playlist INT PRIMARY KEY,
+        id_playlist INT NOT NULL,
         user_id INT NOT NULL,
         name VARCHAR(255) NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
@@ -248,7 +248,7 @@ app.post('/change-password', (req, res) => {
 
 // Spotify API routes
 app.get('/spotify/auth', (req, res) => {
-    const scopes = ['user-read-private', 'user-read-email', 'user-read-playback-state', 'user-modify-playback-state', 'playlist-modify-public', 'playlist-modify-private'];
+    const scopes = ['user-read-private', 'user-read-email', 'user-read-playback-state', 'user-modify-playback-state', 'playlist-modify-public', 'playlist-modify-private', 'playlist-modify-private'];
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
 });
 
@@ -319,7 +319,7 @@ app.post("/playlist/save", async (req, res) => {
     await ensureValidToken();
 
     try {
-        const playlistData = await spotifyApi.createPlaylist(`Moodify - ${mood}`, { 'description': `A playlist for when you're feeling ${mood}`, 'public': true });
+        const playlistData = await spotifyApi.createPlaylist(`Moodify - ${mood}`, { 'description': `A playlist for when you're feeling ${mood}`, 'public': false });
         const playlistId = playlistData.body.id;
         const playlistName = playlistData.body.name;
 
@@ -566,6 +566,63 @@ app.get('/dashboard/playlist/add', async (req, res) => {
     }
 });
 
+
+app.get('/dashboard/playlist/collaborative', async (req, res) => {
+    const { playlistId, email } = req.query;
+
+    if (!playlistId || !email) {
+        return res.status(400).json({ message: 'Playlist ID and email are required' });
+    }
+
+    await ensureValidToken();
+
+    try {
+        // Get the user ID from the email
+        db.get('SELECT id FROM users WHERE email = ?', [email], async (err, user) => {
+            if (err) {
+                console.error('Error querying database for user:', err);
+                return res.status(500).json({ message: 'Database error' });
+            }
+
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            // Make the playlist collaborative on Spotify
+            await spotifyApi.changePlaylistDetails(playlistId, { collaborative: true });
+
+            // Add the user as a collaborator in the database
+            // Get the playlist name from Spotify
+            const playlistData = await spotifyApi.getPlaylist(playlistId);
+            const playlistName = playlistData.body.name;
+
+            // Check if the user is already a collaborator
+            db.get('SELECT * FROM playlists WHERE id_playlist = ? AND user_id = ?', [playlistId, user.id], (err, row) => {
+                if (err) {
+                    console.error('Error querying database for existing collaborator:', err);
+                    return res.status(500).json({ message: 'Database error' });
+                }
+
+                if (row) {
+                    return res.status(200).json({ message: 'User is already a collaborator' });
+                }
+
+                // Add the user as a collaborator in the database
+                db.run('INSERT INTO playlists (id_playlist, user_id, name) VALUES (?, ?, ?)', [playlistId, user.id, playlistName], function (err) {
+                    if (err) {
+                        console.error('Error adding collaborator to database:', err);
+                        return res.status(500).json({ message: 'Error adding collaborator to database' });
+                    }
+
+                    res.status(200).json({ message: 'Playlist is now collaborative' });
+                });
+            });
+        });
+    } catch (error) {
+        console.error('Error making playlist collaborative:', error);
+        res.status(500).send('Error making playlist collaborative');
+    }
+});
 
 // Start the server
 app.listen(port, () => {
