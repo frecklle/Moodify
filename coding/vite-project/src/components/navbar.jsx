@@ -16,8 +16,12 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
         setShowMenu(false);
     };
 
-    const handleClick = () => {
-        alert("Button clicked!");
+    const handleClick = (nav) => {
+        if (nav === "Playlists") {
+            window.location.href = "/dashboard";
+        } else if (nav === "Collaborate") {
+            window.location.href = "/collaborate";
+        }
     };
 
     const handleHomePage = () => {
@@ -35,79 +39,96 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
     };
 
     const handleNavigation = (path) => {
-        window.location.href = path; // Navigate to the provided path
+        window.location.href = path;
     };
 
+    const handleSpotifyAuth = () => {
+        const confirmation = window.confirm("This will redirect you to the Spotify authentication page. Are you sure you want to continue?");
+        if (confirmation) {
+            window.location.href = "http://localhost:5001/spotify/auth";
+        }
+    };
+
+
     return (
-        <header className="w-full fixed top-0 py-1 bg-[#9DC08B]">
-            <nav className="w-full flex justify-between items-center relative pr-2">
-                <div className="absolute left-1/2 transform -translate-x-1/2">
-                    <div className="border border-[#40513B] rounded-full py-1 px-4 flex items-center bg-green-700">
-                        <h1
-                            onClick={handleHomePage}
-                            className="text-xl font-bold text-white cursor-pointer"
-                            style={{fontFamily: 'Montserrat, sans-serif'}}
-                        >
-                            Moodify
-                        </h1>
-                    </div>
+        <header className="w-screen fixed top-0 py-3 bg-gradient-to-r from-[#9DC08B] to-[#609966] shadow-lg z-50">
+            <nav className="w-full flex justify-between items-center relative px-6">
+                {/* Moodify Logo */}
+                <div className="flex items-center">
+                    <h1
+                        onClick={handleHomePage}
+                        className="text-2xl font-bold text-white cursor-pointer transition-transform hover:scale-105"
+                        style={{ fontFamily: 'Montserrat, sans-serif' }}
+                    >
+                        Moodify
+                    </h1>
                 </div>
 
-                <div className="relative flex items-center ml-auto">
+                {/* Right Side Buttons and Dropdowns */}
+                <div className="relative flex items-center space-x-4">
+                    {/* Connect to Spotify Button */}
                     <button
-                        className="mx-3 px-4 py-2 bg-[#EDF1D6] text-black rounded-full hover:bg-[#9DC08B] focus:outline-none focus:ring-2 focus:ring-[#609966] focus:ring-opacity-100"
+                        onClick={handleSpotifyAuth}
+                        className="px-6 py-2 bg-[#1DB954] text-white rounded-full hover:bg-[#1ED760] transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+                    >
+                        Connect to Spotify
+                    </button>
+
+                    {/* Menu Button */}
+                    <button
+                        className="px-4 py-2 bg-white bg-opacity-20 backdrop-blur-sm text-white rounded-full hover:bg-opacity-30 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
                         onClick={handleDropDown}
                     >
                         ☰
                     </button>
 
+                    {/* Profile Button */}
                     <button
-                        className="px-3 py-2 bg-[#EDF1D6] text-black rounded-full hover:bg-[#9DC08B] focus:outline-none focus:ring-2 focus:ring-[#609966] focus:ring-opacity-100"
+                        className="px-4 py-2 bg-white bg-opacity-20 backdrop-blur-sm text-white rounded-full hover:bg-opacity-30 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
                         onClick={handleProfileDropDown}
                     >
-                        🙎🏻‍♂️
+                        🙎🏻
                     </button>
 
-                {showMenu && (
-                    <div
-                        className="absolute right-0 top-10 mt-2 bg-[#EDF1D6] border border-gray-300 rounded shadow-lg flex flex-col w-40 max-w-xs">
-                        {navList.map((nav, index) => (
-                            <button
-                                key={index}
-                                className="px-2 mt-0.5 mb-0.5 py-1 text-black bg-[#9DC08B] hover:bg-[#609966]"
-                                onClick={handleClick}
-                            >
-                                {nav}
-                            </button>
-                        ))}
-                    </div>
-                )}
+                    {/* Dropdown Menu */}
+                    {showMenu && (
+                        <div className="absolute right-0 top-12 mt-2 bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] border border-[#40513B] rounded-2xl shadow-xl flex flex-col w-48 p-2 space-y-2">
+                            {navList.map((nav, index) => (
+                                <button
+                                    key={index}
+                                    className="px-4 py-2 text-[#40513B] bg-white bg-opacity-80 hover:bg-[#609966] hover:text-white rounded-xl shadow-md transition-all duration-200 ease-in-out"
+                                    onClick={() => handleClick(nav)}
+                                >
+                                    {nav}
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
-                {showProfileMenu && (
-                    <div
-                        className="absolute right-0 top-10 mt-2 bg-[#EDF1D6] border border-gray-300 rounded shadow-lg flex flex-col w-40 max-w-xs">
-                        {ProfileList.map((nav, index) => (
+                    {/* Profile Dropdown Menu */}
+                    {showProfileMenu && (
+                        <div className="absolute right-0 top-12 mt-2 bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] border border-[#40513B] rounded-2xl shadow-xl flex flex-col w-48 p-2 space-y-2">
+                            {ProfileList.map((nav, index) => (
+                                <button
+                                    key={index}
+                                    className="px-4 py-2 text-[#40513B] bg-white bg-opacity-80 hover:bg-[#609966] hover:text-white rounded-xl shadow-md transition-all duration-200 ease-in-out"
+                                    onClick={() => handleNavigation(nav.path)}
+                                >
+                                    {nav.name}
+                                </button>
+                            ))}
                             <button
-                                key={index}
-                                className="px-2 mt-0.5 mb-0.5 py-1 text-black bg-[#9DC08B] hover:bg-[#609966]"
-                                onClick={() => handleNavigation(nav.path)}
+                                className="px-4 py-2 text-[#40513B] bg-white bg-opacity-80 hover:bg-[#609966] hover:text-white rounded-xl shadow-md transition-all duration-200 ease-in-out"
+                                onClick={handleLoginLogout}
                             >
-                                {nav.name}
+                                {isLoggedIn ? 'Log Out' : 'Log In'}
                             </button>
-                        ))}
-                        <button
-                            className="px-2 mt-0.5 mb-0.5 py-1 text-black bg-[#9DC08B] hover:bg-[#609966]"
-                            onClick={handleLoginLogout}
-                        >
-                            {isLoggedIn ? 'Log Out' : 'Log In'}
-                        </button>
-                    </div>
-                )}
-            </div>
-        </nav>
-</header>
-)
-    ;
+                        </div>
+                    )}
+                </div>
+            </nav>
+        </header>
+    );
 };
 
 export default Navbar;

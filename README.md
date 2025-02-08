@@ -18,7 +18,7 @@ npm run dev
 Download the required dependencies in directory backend/ using: 
 ```
 npm init -y
-npm install express sqlite3 body-parser cors spotify-web-api-node
+npm install express sqlite3 body-parser cors spotify-web-api-node multer
 ```
 Running backend in backend/:
 ```

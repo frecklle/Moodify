@@ -4,14 +4,13 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const spotifyApi = require('./spotifyApi');
 const bcrypt = require('bcrypt');
+const multer = require("multer");
 
 const app = express();
 const port = 5001;
 
 app.use(bodyParser.json());
 app.use(cors());
-
-
 
 // Connect to SQLite database
 const db = new sqlite3.Database('./database.db', sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
@@ -41,6 +40,36 @@ db.run (`
     )
 `);
 
+const storage = multer.diskStorage({
+    destination: "./uploads/",
+    filename: (req, file, cb) => {
+        cb(null, `user_${req.body.userID}_${Date.now()}${path.extname(file.originalname)}`);
+    },
+});
+const upload = multer({ storage });
+
+app.use("/uploads", express.static("uploads"));
+
+app.post("/upload", upload.single("profileImage"), (req, res) => {
+    const { userID } = req.body;
+    const filePath = `/uploads/${req.file.filename}`;
+
+    // Save path to the database
+    db.run("UPDATE users SET profile_image = ? WHERE id = ?", [filePath, userID], function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: "Profile picture uploaded!", imageUrl: filePath });
+    });
+});
+
+app.get("/spotify/status", (req, res) => {
+    const accessToken = spotifyApi.getAccessToken();
+
+    if (accessToken) {
+        res.json({ connected: true });
+    } else {
+        res.json({ connected: false });
+    }
+});
 
 // Registration route
 app.post('/register', async (req, res) => {
@@ -223,7 +252,6 @@ app.get('/spotify/auth', (req, res) => {
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
 });
 
-//TODO: change redirect from settings to some other screen
 app.get('/spotify/callback', (req, res) => {
     const error = req.query.error;
     const code = req.query.code;
@@ -231,7 +259,7 @@ app.get('/spotify/callback', (req, res) => {
     if (error === 'access_denied') {
         console.error('Access denied:', error);
         res.redirect('http://localhost:5173/settings?error=access_denied');
-        return; 
+        return;
     }
 
     spotifyApi.authorizationCodeGrant(code).then(data => {
@@ -248,13 +276,15 @@ app.get('/spotify/callback', (req, res) => {
             spotifyApi.setAccessToken(accessTokenRefreshed);
         }, expiresIn / 2 * 1000); // Refresh halfway before expiration.
 
-        res.redirect('http://localhost:5173/settings');
+        console.log('Redirecting to home page...');
+        res.redirect('http://localhost:5173/'); // Should redirect to the home page
 
     }).catch(error => {
         console.error('Error getting Tokens:', error);
         res.send('Error getting tokens');
     });
 });
+
 
 const refreshAccessToken = async () => {
     try {
@@ -338,6 +368,7 @@ app.get("/playlist/display", async (req, res) => {
     }
 
     console.log('Current Access Token:', spotifyApi.getAccessToken());
+
     await ensureValidToken();
     
     try {

@@ -60,49 +60,56 @@ const EmailChangeModal = ({ isOpen, onClose }) => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-            <div className="bg-white p-8 rounded-lg shadow-lg w-80">
-                <h2 className="text-2xl font-bold mb-4">Change Email</h2>
-                <div className="mb-4">
-                    <label className="block text-sm font-bold mb-1">Current Email:</label>
+            <div className="bg-white p-8 rounded-2xl shadow-2xl w-96 transform transition-all duration-500 hover:scale-105">
+                <h2 className="text-3xl font-bold text-gray-800 mb-6">Change Email</h2>
+                <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Current Email:</label>
                     <input
                         type="email"
                         value={currentEmail}
                         onChange={(e) => setCurrentEmail(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-md"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
+                        placeholder="Enter your current email"
                         required
                     />
                 </div>
-                <div className="mb-4">
-                    <label className="block text-sm font-bold mb-1">New Email:</label>
+                <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">New Email:</label>
                     <input
                         type="email"
                         value={newEmail}
                         onChange={(e) => setNewEmail(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-md"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
+                        placeholder="Enter your new email"
                         required
                     />
                 </div>
-                <div className="mb-4">
-                    <label className="block text-sm font-bold mb-1">Confirm New Email:</label>
+                <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm New Email:</label>
                     <input
                         type="email"
                         value={confirmEmail}
                         onChange={(e) => setConfirmEmail(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-md"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
+                        placeholder="Confirm your new email"
                         required
                     />
                 </div>
-                {error && <p className="text-red-600 text-sm">{error}</p>}
-                <div className="flex justify-between mt-4">
+                {error && (
+                    <p className="text-red-500 text-sm font-semibold mb-4 animate-pulse">
+                        {error}
+                    </p>
+                )}
+                <div className="flex justify-between mt-6">
                     <button
                         onClick={handleConfirm}
-                        className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                        className="bg-gradient-to-r from-green-700 to-green-600 text-white px-6 py-3 rounded-lg hover:from-green-800 hover:to-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
                     >
                         Confirm
                     </button>
                     <button
                         onClick={onClose}
-                        className="bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-500"
+                        className="bg-gradient-to-r from-gray-400 to-gray-500 text-white px-6 py-3 rounded-lg hover:from-gray-500 hover:to-gray-600 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
                     >
                         Cancel
                     </button>
