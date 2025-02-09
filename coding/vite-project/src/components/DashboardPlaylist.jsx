@@ -168,17 +168,6 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
                 >
                     Delete Playlist
                 </button>
-                <button
-                    onClick={handleGenerateLink}
-                    className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
-                >
-                    Generate Link
-                </button>
-                {generatedLink && (
-                    <p className="text-blue-500 mt-2">
-                        Generated Link: <a href={generatedLink} target="_blank" rel="noopener noreferrer" className="underline">{generatedLink}</a>
-                    </p>
-                )}
             </div>
 
             {/* Search Section */}
@@ -256,6 +245,21 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
             {/* Error Message */}
             {error && (
                 <p className="text-red-500 text-lg mt-6">{error}</p>
+            )}
+
+            {/* Generate Link Button at the Bottom */}
+            <div className="w-full flex justify-center mt-8">
+                <button
+                    onClick={handleGenerateLink}
+                    className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                >
+                    Generate Link
+                </button>
+            </div>
+            {generatedLink && (
+                <p className="text-blue-500 mt-2 text-center">
+                    Generated Link: <a href={generatedLink} target="_blank" rel="noopener noreferrer" className="underline">{generatedLink}</a>
+                </p>
             )}
         </div>
     );

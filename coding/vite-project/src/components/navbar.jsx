@@ -1,10 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import navList from '../constants/navList.jsx';
 import ProfileList from "../constants/ProfileList.jsx";
 
 const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
     const [showMenu, setShowMenu] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
+    const [profileImage, setProfileImage] = useState(null);
+
+    useEffect(() => {
+        const userId = localStorage.getItem('userId'); // Retrieve userId from localStorage
+        if (userId) {
+            // Fetch profile data from backend
+            fetch(`http://localhost:5001/profile?userId=${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.profile_image) {
+                        setProfileImage(data.profile_image); // Set the profile image URL if available
+                    }
+                })
+                .catch(error => console.error('Error fetching profile image:', error));
+        }
+    }, [isLoggedIn, profileImage]); // Add profileImage as a dependency
 
     const handleDropDown = () => {
         setShowMenu(!showMenu);
@@ -51,7 +67,6 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
         }
     };
 
-
     return (
         <header className="w-screen fixed top-0 py-3 bg-gradient-to-r from-[#9DC08B] to-[#609966] shadow-lg z-50">
             <nav className="w-full flex justify-between items-center relative px-6">
@@ -86,15 +101,28 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
 
                     {/* Profile Button */}
                     <button
-                        className="px-4 py-2 bg-white bg-opacity-20 backdrop-blur-sm text-white rounded-full hover:bg-opacity-30 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+                        className="relative p-0 border-none bg-transparent rounded-full overflow-hidden focus:outline-none"
                         onClick={handleProfileDropDown}
                     >
-                        🙎🏻
+                        {profileImage ? (
+                            <img
+                                src={`http://localhost:5001${profileImage}`} // Assuming your backend provides the full image URL
+                                alt="Profile"
+                                className="w-10 h-10 object-cover rounded-full" // Circular shape for the image
+                            />
+                        ) : (
+                            <img
+                                src="https://via.placeholder.com/150" // Default placeholder image
+                                alt="Profile"
+                                className="w-10 h-10 object-cover rounded-full" // Circular shape for the image
+                            />
+                        )}
                     </button>
 
                     {/* Dropdown Menu */}
                     {showMenu && (
-                        <div className="absolute right-0 top-12 mt-2 bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] border border-[#40513B] rounded-2xl shadow-xl flex flex-col w-48 p-2 space-y-2">
+                        <div
+                            className="absolute right-0 top-12 mt-2 bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] border border-[#40513B] rounded-2xl shadow-xl flex flex-col w-48 p-2 space-y-2">
                             {navList.map((nav, index) => (
                                 <button
                                     key={index}
@@ -109,7 +137,8 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
 
                     {/* Profile Dropdown Menu */}
                     {showProfileMenu && (
-                        <div className="absolute right-0 top-12 mt-2 bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] border border-[#40513B] rounded-2xl shadow-xl flex flex-col w-48 p-2 space-y-2">
+                        <div
+                            className="absolute right-0 top-12 mt-2 bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] border border-[#40513B] rounded-2xl shadow-xl flex flex-col w-48 p-2 space-y-2">
                             {ProfileList.map((nav, index) => (
                                 <button
                                     key={index}

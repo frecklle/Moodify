@@ -5,6 +5,7 @@ const EmailChangeModal = ({ isOpen, onClose }) => {
     const [newEmail, setNewEmail] = useState('');
     const [confirmEmail, setConfirmEmail] = useState('');
     const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -12,6 +13,7 @@ const EmailChangeModal = ({ isOpen, onClose }) => {
         const userId = localStorage.getItem('userId');  // Corrected this line
         console.log('Retrieved userId:', userId);
         setError('');
+        setSuccessMessage('');
 
         if (!userId) {
             setError("User is not logged in. Please log in and try again.");
@@ -48,7 +50,7 @@ const EmailChangeModal = ({ isOpen, onClose }) => {
             }
 
             const data = await response.json();
-            alert(data.message);
+            setSuccessMessage(data.message); // Display success message
             onClose();
         } catch (error) {
             console.error('Error updating email:', error);
@@ -95,11 +97,19 @@ const EmailChangeModal = ({ isOpen, onClose }) => {
                         required
                     />
                 </div>
+
+                {/* Error or Success Message */}
                 {error && (
                     <p className="text-red-500 text-sm font-semibold mb-4 animate-pulse">
                         {error}
                     </p>
                 )}
+                {successMessage && (
+                    <p className="text-green-500 text-sm font-semibold mb-4 animate-pulse">
+                        {successMessage}
+                    </p>
+                )}
+
                 <div className="flex justify-between mt-6">
                     <button
                         onClick={handleConfirm}

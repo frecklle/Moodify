@@ -13,6 +13,12 @@ import DashboardPlaylist from './components/DashboardPlaylist.jsx';
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [userId, setUserId] = useState(null); // Add userId state
+    const [profileImage, setProfileImage] = useState(null);
+
+    const updateProfileImage = (newImage) => {
+        setProfileImage(newImage);
+    };
+
 
     // Check for token and user ID when the app loads
     useEffect(() => {
@@ -27,7 +33,7 @@ function App() {
     return (
         <>
             <Router>
-                <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+                <Navbar profileImage={profileImage} updateProfileImage={updateProfileImage} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/playlist/display" element={<PlaylistDisplay setIsLoggedIn={setIsLoggedIn} userId={userId} setUserId={setUserId} />} />

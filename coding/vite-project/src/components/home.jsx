@@ -3,6 +3,7 @@ import React, {useEffect, useState} from 'react';
 const Home = () => {
     const [selectedMood, setSelectedMood] = useState(null);
     const [spotifyConnected, setSpotifyConnected] = useState(false);
+    const [loginMessage, setLoginMessage] = useState("");
 
     useEffect(() => {
         const checkSpotifyConnection = async () => {
@@ -31,28 +32,26 @@ const Home = () => {
         e.stopPropagation(); // Prevents event issues
         const token = localStorage.getItem("authToken");
         if (!token) {
-            alert("Please log in to select a mood.");
+            setLoginMessage("Please log in to select a mood.");
             return;
         }
-        console.log(`Mood selected: ${mood.label}`);
         setSelectedMood(mood);
+        setLoginMessage(""); // Clear the message after selecting a mood
     };
 
     const handleGeneratePlaylist = (mood) => {
         const token = localStorage.getItem("authToken");
         if (!token) {
-            alert("Please log in to generate a playlist.");
+            setLoginMessage("Please log in to generate a playlist.");
             return;
         }
         window.location.href = `http://localhost:5173/playlist/display?mood=${mood}`;
+        setLoginMessage(""); // Clear the message after redirect
     };
 
     return (
-
-        <div
-            className="flex flex-col justify-center items-center w-full min-h-screen bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] w-screen">
+        <div className="flex flex-col justify-center items-center w-full min-h-screen bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] w-screen">
             {/* Header Section */}
-
             <div>
                 {spotifyConnected ? (
                     <p className="text-green-600 font-semibold">✅ Connected to Spotify</p>
@@ -60,7 +59,6 @@ const Home = () => {
                     <p className="text-red-600 font-semibold">❌ Not Connected to Spotify</p>
                 )}
             </div>
-
 
             <div className="text-center mb-8">
                 <h1 className="text-5xl font-bold text-[#40513B] mb-4 animate-fade-in">
@@ -105,6 +103,11 @@ const Home = () => {
                 >
                     Generate Playlist
                 </button>
+            )}
+
+            {/* Login Message Section */}
+            {loginMessage && (
+                <div className="mt-4 text-red-600 font-semibold">{loginMessage}</div>
             )}
 
             {/* Background Floating Elements */}
