@@ -140,8 +140,6 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
         }
     };
 
-    const [isSearching, setIsSearching] = useState(false);
-
     const [isCollaborative, setIsCollaborative] = useState(false);
     const [collaborativeEmail, setCollaborativeEmail] = useState('');
 
