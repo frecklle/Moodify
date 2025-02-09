@@ -47,7 +47,8 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
     const handleSpotifyAuth = () => {
         const confirmation = window.confirm("This will redirect you to the Spotify authentication page. Are you sure you want to continue?");
         if (confirmation) {
-            window.location.href = "http://localhost:5001/spotify/auth";
+            const email = sessionStorage.getItem('email'); // Retrieve email from sessionStorage
+            window.location.href = `http://localhost:5001/spotify/auth?email=${email}`;
         }
     };
 

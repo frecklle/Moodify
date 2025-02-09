@@ -28,7 +28,10 @@ db.run(`
     name TEXT NOT NULL,
     surname TEXT NOT NULL,
     email TEXT NOT NULL,
-    password TEXT NOT NULL
+    password TEXT NOT NULL,
+    spotifyAccessToken TEXT,
+    spotifyRefreshToken TEXT,
+    expiresAt TEXT
   )
 `);
 db.run (`
@@ -36,6 +39,7 @@ db.run (`
         id_playlist INT NOT NULL,
         user_id INT NOT NULL,
         name VARCHAR(255) NOT NULL,
+        PRIMARY KEY (id_playlist, user_id),
         FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
     )
 `);
@@ -245,9 +249,13 @@ app.post('/change-password', (req, res) => {
 });
 
 
+let userEmail = '';
 
 // Spotify API routes
 app.get('/spotify/auth', (req, res) => {
+
+    userEmail = req.query.email;
+
     const scopes = ['user-read-private', 'user-read-email', 'user-read-playback-state', 'user-modify-playback-state', 'playlist-modify-public', 'playlist-modify-private', 'playlist-modify-private'];
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
 });
@@ -267,6 +275,20 @@ app.get('/spotify/callback', (req, res) => {
             const accessToken = data.body['access_token'];
             const refreshToken = data.body['refresh_token'];
             const expiresIn = data.body['expires_in'];
+            const expiresAt = Date.now() + expiresIn * 1000;
+            console.log('Access token:', accessToken);
+            console.log('Expires at:', expiresAt);
+
+            db.run(
+                `UPDATE users SET spotifyAccessToken = ?, spotifyRefreshToken = ?, expiresAt = ? WHERE email = ?`,
+                [accessToken, refreshToken, expiresAt, userEmail],
+                function (err) {
+                    if (err) {
+                        console.error('Error saving tokens:', err);
+                        return res.status(500).send('Database error');
+                    }
+                }
+            );
 
             spotifyApi.setAccessToken(accessToken);
             spotifyApi.setRefreshToken(refreshToken);
@@ -283,7 +305,7 @@ app.get('/spotify/callback', (req, res) => {
         })
         .catch(error => {
             console.error('Error getting Tokens:', error);
-            res.redirect('http://localhost:5173/settings?error=spotify_auth_failed');
+            res.redirect('http://localhost:5173?error=spotify_auth_failed');
         });
 });
 
@@ -291,11 +313,25 @@ const refreshAccessToken = async () => {
     try {
         const data = await spotifyApi.refreshAccessToken();
         const newAccessToken = data.body['access_token'];
+        const newExpiresAt = Date.now() + data.body['expires_in'] * 1000;
+
         spotifyApi.setAccessToken(newAccessToken);
-        console.log('Access token refreshed:', newAccessToken);
+
+        // Update the database with the new token
+        db.run(
+            `UPDATE users SET spotifyAccessToken = ?, expiresAt = ? WHERE spotifyRefreshToken = ?`,
+            [newAccessToken, newExpiresAt, spotifyApi.getRefreshToken()],
+            (err) => {
+                if (err) {
+                    console.error('Error updating refreshed token:', err);
+                } else {
+                    console.log('Access token refreshed and saved.');
+                }
+            }
+        );
+
     } catch (error) {
         console.error('Error refreshing access token:', error);
-        throw new Error('Could not refresh access token');
     }
 };
 
@@ -624,7 +660,35 @@ app.get('/dashboard/playlist/collaborative', async (req, res) => {
     }
 });
 
+const restoreSpotifyTokens = () => {
+    db.get('SELECT spotifyAccessToken, spotifyRefreshToken, expiresAt FROM users WHERE spotifyAccessToken IS NOT NULL LIMIT 1', async (err, row) => {
+        if (err) {
+            console.error('Error retrieving stored tokens:', err);
+            return;
+        }
+
+        if (row) {
+            const { spotifyAccessToken, spotifyRefreshToken, expiresAt } = row;
+            const currentTime = Date.now();
+
+            spotifyApi.setAccessToken(spotifyAccessToken);
+            spotifyApi.setRefreshToken(spotifyRefreshToken);
+
+            console.log('Restored Spotify tokens from database.');
+
+            // If token is expired, refresh it
+            if (currentTime >= expiresAt) {
+                console.log('Access token expired, refreshing...');
+                await refreshAccessToken();
+            }
+        } else {
+            console.log('No stored Spotify tokens found.');
+        }
+    });
+};
+
 // Start the server
-app.listen(port, () => {
+app.listen(port, async () => {
     console.log(`Server running on port ${port}`);
+    restoreSpotifyTokens();
 });
