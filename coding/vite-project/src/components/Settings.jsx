@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import EmailChangeModal from './emailChangeModal'; // Make sure to import the modal component
-import PasswordChangeModal from './PasswordChangeModal'; // Import the PasswordChangeModal component
+import EmailChangeModal from './emailChangeModal';
+import PasswordChangeModal from './PasswordChangeModal';
 
 const Settings = () => {
     const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false); // State to control password change modal
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
     const userId = localStorage.getItem("userId");
 
@@ -13,7 +13,7 @@ const Settings = () => {
             alert("You must be logged in to change your email.");
             return;
         }
-        setIsEmailModalOpen(true); // Open the email change modal
+        setIsEmailModalOpen(true);
     };
 
     const handleChangePassword = () => {
@@ -21,13 +21,14 @@ const Settings = () => {
             alert("You must be logged in to change your password.");
             return;
         }
-        setIsPasswordModalOpen(true); // Open the password change modal
+        setIsPasswordModalOpen(true);
     };
 
     const handleDeleteAccount = () => {
         const confirmation = window.confirm("Are you sure you want to delete your account?");
         if (confirmation) {
-            alert('Account deleted!'); // Placeholder for deleting account logic
+            // Replace with actual backend logic to delete the account
+            alert('Account deleted!');
         }
     };
 
