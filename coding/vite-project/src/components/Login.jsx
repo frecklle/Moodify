@@ -24,9 +24,10 @@ function Login({ setIsLoggedIn, setUserId }) {
 
                 if (data.userId) {
                     localStorage.setItem("userId", data.userId);
+                    sessionStorage.setItem("userId", data.userId);
                     setUserId(data.userId);
                 }
-
+                sessionStorage.setItem("email", email);
                 const token = btoa(JSON.stringify({ email }));
                 localStorage.setItem("authToken", token);
 

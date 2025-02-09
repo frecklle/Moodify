@@ -123,6 +123,26 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
         }
     };
 
+    const handleCollaborative = async (email) => {
+        try {
+            const response = await fetch(`http://localhost:5001/dashboard/playlist/collaborative?playlistId=${playlistId}&email=${email}`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Collaborative response:', data);
+            alert('Playlist is now collaborative!');
+        } catch (err) {
+            console.error('Error making playlist collaborative:', err);
+            setError(err.message);
+        }
+    };
+
+    const [isCollaborative, setIsCollaborative] = useState(false);
+    const [collaborativeEmail, setCollaborativeEmail] = useState('');
+
     return (
         <div className="flex flex-col justify-center items-center w-[100vw] min-h-screen bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] p-6 pt-24"> {/* Add pt-24 to offset the header */}
             {/* Header */}
@@ -200,6 +220,22 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
                         </button>
                     )}
                 </div>
+                    {isCollaborative && (
+                        <>
+                            <input
+                                type="email"
+                                value={collaborativeEmail}
+                                onChange={(e) => setCollaborativeEmail(e.target.value)}
+                                placeholder="Enter collaborator's email"
+                                className="px-4 py-2 border rounded mb-2"
+                            />
+                            <button onClick={() => handleCollaborative(collaborativeEmail)} className="px-4 py-2 bg-blue-500 text-white rounded">Make Collaborative</button>
+                            <button onClick={() => setIsCollaborative(false)} className="px-4 py-2 bg-gray-500 text-white rounded ml-2">Hide</button>
+                        </>
+                    )}
+                    {!isCollaborative && (
+                        <button onClick={() => setIsCollaborative(true)} className="px-4 py-2 bg-blue-500 text-white rounded">Make Collaborative</button>
+                    )}
                 {searchResults.length > 0 && (
                     <div className="mt-4">
                         <h3 className="text-xl font-semibold mb-4 text-[#40513B]">Search Results</h3>
