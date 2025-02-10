@@ -3,6 +3,7 @@ const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const spotifyApi = require('./spotifyApi');
 const bcrypt = require('bcrypt');
 const multer = require("multer");
@@ -24,19 +25,19 @@ const db = new sqlite3.Database('./database.db', sqlite3.OPEN_READWRITE | sqlite
 
 // Create a table for users if it doesn't exist
 db.run(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    surname TEXT NOT NULL,
-    email TEXT NOT NULL,
-    password TEXT NOT NULL,
-    spotifyAccessToken TEXT,
-    spotifyRefreshToken TEXT,
-    expiresAt TEXT
-    bio TEXT,
-    username TEXT UNIQUE,
-    profile_image TEXT
-  )
+    CREATE TABLE IF NOT EXISTS users (
+                                             id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                             name TEXT NOT NULL,
+                                             surname TEXT NOT NULL,
+                                             email TEXT NOT NULL,
+                                             password TEXT NOT NULL,
+                                             spotifyAccessToken TEXT,
+                                             spotifyRefreshToken TEXT,
+                                             expiresAt TEXT,
+                                             bio TEXT,
+                                             username TEXT UNIQUE,
+                                             profile_image TEXT
+    );
 `);
 db.run (`
     CREATE TABLE IF NOT EXISTS playlists (
@@ -103,31 +104,63 @@ app.get("/spotify/status", (req, res) => {
 app.post('/register', async (req, res) => {
     const { name, surname, email, password } = req.body;
 
-    console.log('Registration attempt:', { name, surname, email, password }); // Log input values
+    console.log('Registration attempt:', { name, surname, email, password });
 
     const checkQuery = `SELECT * FROM users WHERE email = ?`;
     db.get(checkQuery, [email], async (err, row) => {
         if (err) {
-            console.error('Error checking email:', err); // Log error
+            console.error('Error checking email:', err);
             return res.status(500).send('Error checking email');
         }
         if (row) {
-            console.log('Email already exists:', email); // Log existing email
+            console.log('Email already exists:', email);
             return res.status(400).send('Email already exists');
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log('Hashed password:', hashedPassword); // Log hashed password
+        console.log('Hashed password:', hashedPassword);
 
-        const query = `INSERT INTO users (name, surname, email, password) VALUES (?, ?, ?, ?)`;
-        db.run(query, [name, surname, email, hashedPassword], function (err) {
+        const defaultProfilePic = '/uploads/default_profile_pic.jpg'; // Path to your default image
+
+        const query = `INSERT INTO users (name, surname, email, password, profile_image) VALUES (?, ?, ?, ?, ?)`;
+        db.run(query, [name, surname, email, hashedPassword, defaultProfilePic], function (err) {
             if (err) {
-                console.error('Error registering user:', err); // Log error
+                console.error('Error registering user:', err);
                 return res.status(500).send('Error registering user');
             }
             res.status(201).send('User registered successfully');
         });
     });
+});
+
+app.post('/profile/update', (req, res) => {
+    const { userId, username, bio } = req.body;
+
+    console.log('Received update request:', { userId, username, bio }); // Log the received data
+
+    // Validate input
+    if (!userId || !username || !bio) {
+        return res.status(400).json({ message: 'User ID, username, and bio are required.' });
+    }
+
+    // Update the user's profile in the database
+    db.run(
+        'UPDATE users SET username = ?, bio = ? WHERE id = ?',
+        [username, bio, userId],
+        function (err) {
+            if (err) {
+                console.error('Error updating profile:', err);
+                return res.status(500).json({ message: 'Failed to update profile.' });
+            }
+
+            // Check if any rows were updated
+            if (this.changes === 0) {
+                return res.status(404).json({ message: 'User not found.' });
+            }
+
+            res.status(200).json({ message: 'Profile updated successfully' });
+        }
+    );
 });
 
 // Login route

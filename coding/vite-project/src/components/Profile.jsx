@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import DefaultProfilePic from '../constants/moodify_default.jpg';
 
 const Profile = ({ userId }) => {
     const [name, setName] = useState('');
     const [bio, setBio] = useState('');
     const [message, setMessage] = useState('');
     const [file, setFile] = useState(null);
-    const [profileImage, setProfileImage] = useState('https://via.placeholder.com/150'); // Default placeholder image
+    const [profileImage, setProfileImage] = useState(DefaultProfilePic); // Default placeholder image
     const fileInputRef = useRef(null);
-
 
     useEffect(() => {
         if (userId) {
@@ -31,7 +31,7 @@ const Profile = ({ userId }) => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ userId, username: name, bio }),
+                body: JSON.stringify({ userId, username: name, bio }), // Ensure field names match backend
             })
                 .then(response => response.json())
                 .then(data => {
@@ -102,7 +102,7 @@ const Profile = ({ userId }) => {
                             src={profileImage}
                             alt="Profile"
                             className="w-full h-full object-cover"
-                            onError={(e) => e.target.src = 'https://via.placeholder.com/150'}  // Fallback image
+                            onError={(e) => e.target.src = DefaultProfilePic}  // Fallback image
                         />
                     </div>
 
