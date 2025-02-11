@@ -5,6 +5,7 @@ import PasswordChangeModal from './PasswordChangeModal';
 const Settings = () => {
     const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [message, setMessage] = useState('');
 
     const userId = localStorage.getItem("userId");
 
@@ -24,11 +25,31 @@ const Settings = () => {
         setIsPasswordModalOpen(true);
     };
 
-    const handleDeleteAccount = () => {
+    const handleDeleteAccount = async () => {
         const confirmation = window.confirm("Are you sure you want to delete your account?");
         if (confirmation) {
-            // Replace with actual backend logic to delete the account
-            alert('Account deleted!');
+            try {
+                const response = await fetch('http://localhost:5001/delete-account', { // Use the full backend URL
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include the token if needed
+                    },
+                    body: JSON.stringify({ userId: localStorage.getItem("userId") }),
+                });
+
+                if (response.ok) {
+                    localStorage.clear(); // Clear local storage
+                    window.location.href = '/login'; // Redirect to login page
+                    setMessage('Account deleted')
+                } else {
+                    const data = await response.json();
+                    alert(data.message || 'Failed to delete account');
+                }
+            } catch (error) {
+                console.error('Error deleting account:', error);
+                alert('An error occurred while deleting the account');
+            }
         }
     };
 

@@ -1,3 +1,3 @@
-export const navList = ['Playlists','Collaborate'];
+export const navList = ['Playlists'];
 
 export default navList;

@@ -12,6 +12,8 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [isCollaborative, setIsCollaborative] = useState(false);
+    const [collaborativeEmail, setCollaborativeEmail] = useState('');
 
     useEffect(() => {
         const fetchPlaylist = async () => {
@@ -48,8 +50,8 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
 
             const data = await response.json();
             console.log('Edit response:', data);
-            setIsEditing(false); // Hide the input field after saving
-            setName(newName); // Update the displayed name
+            setIsEditing(false);
+            setName(newName);
         } catch (err) {
             console.error('Error editing playlist:', err);
             setError(err.message);
@@ -140,11 +142,8 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
         }
     };
 
-    const [isCollaborative, setIsCollaborative] = useState(false);
-    const [collaborativeEmail, setCollaborativeEmail] = useState('');
-
     return (
-        <div className="flex flex-col justify-center items-center w-[100vw] min-h-screen bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] p-6 pt-24"> {/* Add pt-24 to offset the header */}
+        <div className="flex flex-col justify-center items-center w-[100vw] min-h-screen bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] p-6 pt-24">
             {/* Header */}
             <h2 className="text-4xl font-bold mb-8 text-[#40513B] animate-fade-in">
                 {name || "Playlist Details"}
@@ -191,7 +190,7 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
             </div>
 
             {/* Search Section */}
-            <div className="w-full text-black max-w-4xl mb-8">
+            <div className="w-full text-black max-w-4xl mb-3">
                 <div className="flex items-center gap-4">
                     <input
                         type="text"
@@ -203,7 +202,7 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
                             }
                         }}
                         placeholder="Search for tracks"
-                        className=" bg-white text-black w-full px-4 py-2 border border-[#40513B] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#609966]"
+                        className="bg-white text-black w-full px-4 py-2 border border-[#40513B] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#609966]"
                     />
                     <button
                         onClick={() => handleSearch(searchQuery)}
@@ -220,22 +219,6 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
                         </button>
                     )}
                 </div>
-                    {isCollaborative && (
-                        <>
-                            <input
-                                type="email"
-                                value={collaborativeEmail}
-                                onChange={(e) => setCollaborativeEmail(e.target.value)}
-                                placeholder="Enter collaborator's email"
-                                className="px-4 py-2 border rounded mb-2"
-                            />
-                            <button onClick={() => handleCollaborative(collaborativeEmail)} className="px-4 py-2 bg-blue-500 text-white rounded">Make Collaborative</button>
-                            <button onClick={() => setIsCollaborative(false)} className="px-4 py-2 bg-gray-500 text-white rounded ml-2">Hide</button>
-                        </>
-                    )}
-                    {!isCollaborative && (
-                        <button onClick={() => setIsCollaborative(true)} className="px-4 py-2 bg-blue-500 text-white rounded">Make Collaborative</button>
-                    )}
                 {searchResults.length > 0 && (
                     <div className="mt-4">
                         <h3 className="text-xl font-semibold mb-4 text-[#40513B]">Search Results</h3>
@@ -256,6 +239,42 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
                             ))}
                         </ul>
                     </div>
+                )}
+            </div>
+
+            {/* Collaborative Section */}
+            <div className="w-full flex justify-center items-center mb-3">
+                {isCollaborative ? (
+                    <div className="flex flex-col items-center">
+                        <input
+                            type="email"
+                            value={collaborativeEmail}
+                            onChange={(e) => setCollaborativeEmail(e.target.value)}
+                            placeholder="Enter collaborator's email"
+                            className="px-4 py-2 border border-[#40513B] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#609966]"
+                        />
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => handleCollaborative(collaborativeEmail)}
+                                className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                            >
+                                Make Collaborative
+                            </button>
+                            <button
+                                onClick={() => setIsCollaborative(false)}
+                                className="px-6 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                            >
+                                Hide
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => setIsCollaborative(true)}
+                        className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                    >
+                        Make Collaborative
+                    </button>
                 )}
             </div>
 

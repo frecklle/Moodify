@@ -293,6 +293,48 @@ app.get('/profile', (req, res) => {
     });
 });
 
+app.delete('/delete-account', (req, res) => {
+    const { userId } = req.body;
+
+    // Validate input
+    if (!userId) {
+        return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    // Begin a transaction to ensure atomicity
+    db.serialize(() => {
+        db.run('BEGIN TRANSACTION');
+
+        // Delete the user's playlists first (due to foreign key constraint)
+        db.run('DELETE FROM playlists WHERE user_id = ?', [userId], function (err) {
+            if (err) {
+                console.error('Error deleting user playlists:', err);
+                db.run('ROLLBACK'); // Rollback the transaction on error
+                return res.status(500).json({ message: 'Error deleting user playlists' });
+            }
+
+            // Now delete the user
+            db.run('DELETE FROM users WHERE id = ?', [userId], function (err) {
+                if (err) {
+                    console.error('Error deleting user:', err);
+                    db.run('ROLLBACK'); // Rollback the transaction on error
+                    return res.status(500).json({ message: 'Error deleting user' });
+                }
+
+                // Commit the transaction if both operations succeed
+                db.run('COMMIT', function (err) {
+                    if (err) {
+                        console.error('Error committing transaction:', err);
+                        return res.status(500).json({ message: 'Error committing transaction' });
+                    }
+
+                    res.status(200).json({ message: 'Account deleted successfully' });
+                });
+            });
+        });
+    });
+});
+
 app.post('/change-password', (req, res) => {
     const { userId, currentPassword, newPassword } = req.body;
 

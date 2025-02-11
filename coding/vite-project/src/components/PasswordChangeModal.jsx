@@ -5,6 +5,7 @@ const PasswordChangeModal = ({ isOpen, onClose }) => {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
 
     const handleConfirm = async () => {
         const userId = localStorage.getItem('userId');
@@ -27,7 +28,7 @@ const PasswordChangeModal = ({ isOpen, onClose }) => {
         }
 
         try {
-            const response = await fetch('http://localhost:5001/update-password', {
+            const response = await fetch('http://localhost:5001/change-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -41,8 +42,8 @@ const PasswordChangeModal = ({ isOpen, onClose }) => {
             }
 
             const data = await response.json();
-            alert(data.message);
-            onClose();
+            setSuccessMessage(data.message); // Display success message
+            setTimeout(onClose, 1000);
         } catch (error) {
             console.error('Error updating password:', error);
             setError(error.message || 'Failed to update password');
@@ -91,6 +92,11 @@ const PasswordChangeModal = ({ isOpen, onClose }) => {
                 {error && (
                     <p className="text-red-500 text-sm font-semibold mb-4 animate-pulse">
                         {error}
+                    </p>
+                )}
+                {successMessage && (
+                    <p className="text-green-500 text-sm font-semibold mb-4 animate-pulse">
+                        {successMessage}
                     </p>
                 )}
                 <div className="flex justify-between mt-6">

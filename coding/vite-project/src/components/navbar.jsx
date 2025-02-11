@@ -57,10 +57,18 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
         }
 
         // Handle specific nav actions when logged in
-        if (nav === "Playlists") {
-            window.location.href = `http://localhost:5173/dashboard?userId=${userId}`;
-        } else if (nav === "Collaborate") {
-            window.location.href = "/collaborate";
+        switch (nav) {
+            case "Playlists":
+                window.location.href = '/dashboard?userId=${userId}';
+                break;
+            case "Profile":
+                window.location.href = "/profile";
+                break;
+            case "Settings":
+                window.location.href = "/settings";
+                break;
+            default:
+                break;
         }
     };
 

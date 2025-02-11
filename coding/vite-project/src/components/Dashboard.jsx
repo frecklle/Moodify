@@ -6,12 +6,21 @@ const Dashboard = () => {
     const [error, setError] = useState(null);
     const [userId, setUserId] = useState(null);
 
+    // Retrieve userId from localStorage once on component mount
     useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const userIdFromUrl = urlParams.get('userId');
-        if (userIdFromUrl) {
-            setUserId(userIdFromUrl);
+        const storedUserId = localStorage.getItem("userId");
+        if (storedUserId) {
+            setUserId(storedUserId);
+        } else {
+            setLoading(false); // Stop loading if there's no user ID
+            setError("User not found. Please log in.");
         }
+    }, []);
+
+    // Fetch playlists when userId is set
+    useEffect(() => {
+        if (!userId) return; // Prevent fetching if userId is still null
+
         const fetchPlaylists = async () => {
             try {
                 const response = await fetch(`http://localhost:5001/dashboard?userId=${userId}`);
@@ -24,14 +33,13 @@ const Dashboard = () => {
                 console.log('Playlists:', data);
             } catch (err) {
                 console.error('Error fetching playlists:', err);
-                setError(err.message); // Set error message
+                setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
-        if (userId) {
-            fetchPlaylists();
-        }
+
+        fetchPlaylists();
     }, [userId]);
 
     const handlePlaylistClick = (playlist) => {
