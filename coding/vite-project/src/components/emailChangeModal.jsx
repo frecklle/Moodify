@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import FeedbackMessage from './FeedbackMessage';
 
 const EmailChangeModal = ({ isOpen, onClose }) => {
     const [currentEmail, setCurrentEmail] = useState('');
@@ -10,7 +11,7 @@ const EmailChangeModal = ({ isOpen, onClose }) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     const handleConfirm = async () => {
-        const userId = localStorage.getItem('userId');  // Corrected this line
+        const userId = localStorage.getItem('userId');
         console.log('Retrieved userId:', userId);
         setError('');
         setSuccessMessage('');
@@ -50,8 +51,10 @@ const EmailChangeModal = ({ isOpen, onClose }) => {
             }
 
             const data = await response.json();
-            setSuccessMessage(data.message); // Display success message
+            setSuccessMessage("Email changed successfully!"); // Display success message
+            setTimeout(() => {
             onClose();
+        }, 1000);
         } catch (error) {
             console.error('Error updating email:', error);
             setError(error.message || 'Failed to update email');

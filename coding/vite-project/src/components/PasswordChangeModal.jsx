@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
+import FeedbackMessage from './FeedbackMessage';
 
 const PasswordChangeModal = ({ isOpen, onClose }) => {
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
 
     const handleConfirm = async () => {
         const userId = localStorage.getItem('userId');
         console.log('Retrieved userId:', userId);
         setError('');
+        setSuccessMessage(''); // Clear previous message
 
         if (!userId) {
             setError("User is not logged in. Please log in and try again.");
@@ -27,7 +30,7 @@ const PasswordChangeModal = ({ isOpen, onClose }) => {
         }
 
         try {
-            const response = await fetch('http://localhost:5001/update-password', {
+            const response = await fetch('http://localhost:5001/change-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -41,8 +44,10 @@ const PasswordChangeModal = ({ isOpen, onClose }) => {
             }
 
             const data = await response.json();
-            alert(data.message);
-            onClose();
+            setSuccessMessage("Password updated successfully!"); // Set success message
+            setTimeout(() => {
+                onClose();
+            }, 1000);
         } catch (error) {
             console.error('Error updating password:', error);
             setError(error.message || 'Failed to update password');
@@ -91,6 +96,11 @@ const PasswordChangeModal = ({ isOpen, onClose }) => {
                 {error && (
                     <p className="text-red-500 text-sm font-semibold mb-4 animate-pulse">
                         {error}
+                    </p>
+                )}
+                {successMessage && (
+                    <p className="text-green-500 text-sm font-semibold mb-4 animate-pulse">
+                        {successMessage}
                     </p>
                 )}
                 <div className="flex justify-between mt-6">

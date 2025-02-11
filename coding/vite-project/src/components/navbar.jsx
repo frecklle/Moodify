@@ -36,39 +36,55 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
     }, [isLoggedIn]);
 
     const handleDropDown = () => {
+        console.log('Dropdown button clicked');
         setShowMenu(!showMenu);
         setShowProfileMenu(false);
     };
 
     const handleProfileDropDown = () => {
+        console.log('Profile dropdown button clicked');
         setShowProfileMenu(!showProfileMenu);
         setShowMenu(false);
     };
 
     const handleClick = (nav) => {
-        const userId = localStorage.getItem('userId');
+    const userId = localStorage.getItem('userId');
 
-        if (!isLoggedIn) {
-            // Redirect to login page for other buttons
-            if (nav !== "Connect to Spotify") {
-                window.location.href = "/login"; // Redirect to login without showing the message
-            }
-            return;
+    if (!isLoggedIn) {
+        // Redirect to login page for other buttons
+        if (nav !== "Connect to Spotify") {
+            window.location.href = "/login"; // Redirect to login without showing the message
         }
+        return;
+    }
 
-        // Handle specific nav actions when logged in
-        if (nav === "Playlists") {
+    // Handle specific nav actions when logged in
+    switch (nav) {
+        case "Playlists":
             window.location.href = `http://localhost:5173/dashboard?userId=${userId}`;
-        } else if (nav === "Collaborate") {
+            break;
+        case "Collaborate":
             window.location.href = "/collaborate";
-        }
-    };
+            break;
+        case "Profile":
+            window.location.href = "/profile";
+            break;
+        case "Settings":
+            window.location.href = "/settings";
+            break;
+        default:
+            // Handle any other cases or do nothing
+            break;
+    }
+};
 
     const handleHomePage = () => {
+        console.log('Home button clicked');
         window.location.href = "/";
     };
 
     const handleLoginLogout = () => {
+        console.log('Login/Logout button clicked');
         if (isLoggedIn) {
             localStorage.removeItem("authToken");
             localStorage.removeItem("userId"); // Also remove userId to prevent fetching an old profile
@@ -81,6 +97,7 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
     };
 
     const handleSpotifyAuth = () => {
+        console.log('Spotify Auth button clicked');
         if (!isLoggedIn) {
             setShowLoginMessage(true); // Show message to log in
             setTimeout(() => setShowLoginMessage(false), 3000); // Hide message after 3 seconds

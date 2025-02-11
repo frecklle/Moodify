@@ -10,7 +10,7 @@ const Settings = () => {
 
     const handleChangeEmail = () => {
         if (!userId) {
-            alert("You must be logged in to change your email.");
+            setMessage("You must be logged in to change your email.");
             return;
         }
         setIsEmailModalOpen(true);
@@ -18,7 +18,7 @@ const Settings = () => {
 
     const handleChangePassword = () => {
         if (!userId) {
-            alert("You must be logged in to change your password.");
+            setMessage("You must be logged in to change your password.");
             return;
         }
         setIsPasswordModalOpen(true);
@@ -28,7 +28,7 @@ const Settings = () => {
         const confirmation = window.confirm("Are you sure you want to delete your account?");
         if (confirmation) {
             // Replace with actual backend logic to delete the account
-            alert('Account deleted!');
+            setMessage('Account deleted!');
         }
     };
 

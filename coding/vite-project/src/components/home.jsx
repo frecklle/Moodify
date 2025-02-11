@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import FeedbackMessage from './FeedbackMessage';
 
 const Home = () => {
     const [selectedMood, setSelectedMood] = useState(null);

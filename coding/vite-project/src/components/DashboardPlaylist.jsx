@@ -12,6 +12,9 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [message, setMessage] = useState('');
+    const [isCollaborative, setIsCollaborative] = useState(false);
+    const [collaborativeEmail, setCollaborativeEmail] = useState('');
 
     useEffect(() => {
         const fetchPlaylist = async () => {
@@ -35,7 +38,7 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
 
     const handleEdit = async () => {
         if (!newName) {
-            alert('Playlist name cannot be empty.');
+            setMessage('Playlist name cannot be empty.');
             return;
         }
 
@@ -133,15 +136,12 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
 
             const data = await response.json();
             console.log('Collaborative response:', data);
-            alert('Playlist is now collaborative!');
+            setMessage('Playlist is now collaborative!');
         } catch (err) {
             console.error('Error making playlist collaborative:', err);
             setError(err.message);
         }
     };
-
-    const [isCollaborative, setIsCollaborative] = useState(false);
-    const [collaborativeEmail, setCollaborativeEmail] = useState('');
 
     return (
         <div className="flex flex-col justify-center items-center w-[100vw] min-h-screen bg-gradient-to-br from-[#EDF1D6] to-[#9DC08B] p-6 pt-24"> {/* Add pt-24 to offset the header */}
@@ -234,7 +234,9 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
                         </>
                     )}
                     {!isCollaborative && (
-                        <button onClick={() => setIsCollaborative(true)} className="px-4 py-2 bg-blue-500 text-white rounded">Make Collaborative</button>
+                        <div className="w-full flex justify-center mt-8">
+                            <button onClick={() => setIsCollaborative(true)} className="px-4 py-2 bg-blue-500 text-white rounded">Make Collaborative</button>
+                        </div>
                     )}
                 {searchResults.length > 0 && (
                     <div className="mt-4">
