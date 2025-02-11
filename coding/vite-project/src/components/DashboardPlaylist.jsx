@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 
-const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
+const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId, onClose }) => {
     const queryParams = new URLSearchParams(window.location.search);
     const playlistId = queryParams.get('playlistId');
     const [tracks, setTracks] = useState([]);
     const [error, setError] = useState(null);
+    const [message, setMessage] = useState('');
     const [newName, setNewName] = useState('');
     const [name, setName] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -130,15 +131,24 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
             const response = await fetch(`http://localhost:5001/dashboard/playlist/collaborative?playlistId=${playlistId}&email=${email}`);
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                if (response.status === 404) {
+                    throw new Error('User not found');
+                } else {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
             }
 
             const data = await response.json();
             console.log('Collaborative response:', data);
-            alert('Playlist is now collaborative!');
+            setMessage('Playlist was successfully made collaborative');
+            setTimeout(onClose, 1000);
         } catch (err) {
             console.error('Error making playlist collaborative:', err);
             setError(err.message);
+            if (err.message === 'User not found') {
+                setError('User not found');
+                setTimeout(onClose, 1000);
+            }
         }
     };
 
@@ -266,6 +276,11 @@ const DashboardPlaylist = ({ userId, setIsLoggedIn, setUserId }) => {
                             >
                                 Hide
                             </button>
+                            {message && (
+                                <p className="text-green-500 text-sm font-semibold mb-4 animate-pulse">
+                                    {message}
+                                </p>
+                            )}
                         </div>
                     </div>
                 ) : (

@@ -764,38 +764,58 @@ app.get('/dashboard/playlist/collaborative', async (req, res) => {
             // Make the playlist collaborative on Spotify
             await spotifyApi.changePlaylistDetails(playlistId, { collaborative: true });
 
-            // Add the user as a collaborator in the database
             // Get the playlist name from Spotify
             const playlistData = await spotifyApi.getPlaylist(playlistId);
             const playlistName = playlistData.body.name;
 
-            // Check if the user is already a collaborator
-            db.get('SELECT * FROM playlists WHERE id_playlist = ? AND user_id = ?', [playlistId, user.id], (err, row) => {
+            // Ensure the playlist exists in the database
+            db.get('SELECT id_playlist FROM playlists WHERE id_playlist = ?', [playlistId], (err, row) => {
                 if (err) {
-                    console.error('Error querying database for existing collaborator:', err);
+                    console.error('Error checking playlist existence:', err);
                     return res.status(500).json({ message: 'Database error' });
                 }
 
-                if (row) {
-                    return res.status(200).json({ message: 'User is already a collaborator' });
+                if (!row) {
+                    // Insert the playlist if it doesn't exist
+                    db.run('INSERT INTO playlists (id_playlist, name) VALUES (?, ?)', [playlistId, playlistName], (err) => {
+                        if (err) {
+                            console.error('Error adding playlist to database:', err);
+                            return res.status(500).json({ message: 'Error adding playlist to database' });
+                        }
+                        console.log('Playlist added to database:', playlistId);
+                    });
                 }
 
-                // Add the user as a collaborator in the database
-                db.run('INSERT INTO playlists (id_playlist, user_id, name) VALUES (?, ?, ?)', [playlistId, user.id, playlistName], function (err) {
+                // Check if the user is already a collaborator
+                db.get('SELECT * FROM playlists WHERE user_id = ? AND id_playlist = ?', [user.id, playlistId], (err, collabRow) => {
                     if (err) {
-                        console.error('Error adding collaborator to database:', err);
-                        return res.status(500).json({ message: 'Error adding collaborator to database' });
+                        console.error('Error checking existing collaborator:', err);
+                        return res.status(500).json({ message: 'Database error' });
                     }
 
-                    res.status(200).json({ message: 'Playlist is now collaborative' });
+                    if (collabRow) {
+                        return res.status(200).json({ message: 'User is already a collaborator' });
+                    }
+
+                    // Add the user as a collaborator
+                    db.run('INSERT INTO playlists (user_id, id_playlist, name) VALUES (?, ?, ?)', [user.id, playlistId, playlistName], (err) => {
+                        if (err) {
+                            console.error('Error adding collaborator to database:', err);
+                            return res.status(500).json({ message: 'Error adding collaborator to database' });
+                        }
+
+                        res.status(200).json({ message: 'User added as a collaborator', playlistId });
+                    });
                 });
             });
         });
     } catch (error) {
         console.error('Error making playlist collaborative:', error);
-        res.status(500).send('Error making playlist collaborative');
+        res.status(500).json({ message: 'Error making playlist collaborative' });
     }
 });
+
+
 
 const restoreSpotifyTokens = () => {
     db.get('SELECT spotifyAccessToken, spotifyRefreshToken, expiresAt FROM users WHERE spotifyAccessToken IS NOT NULL LIMIT 1', async (err, row) => {
